@@ -109,7 +109,7 @@
     api.institutions()
       .then((list) => {
         document.getElementById('reg-institution').innerHTML =
-          '<option value="">Not specified</option>' +
+          '<option value="">Select your institution</option>' +
           list.map((i) => `<option value="${i._id}">${escapeHtml(i.name)}</option>`).join('');
       })
       .catch(() => {
@@ -151,6 +151,16 @@
       e.preventDefault();
       clearNote(note);
       const btn = registerForm.querySelector('button');
+
+      // Events are scoped per campus, so an account needs an institution.
+      const chosenInstitution = customInstitution ? instInput.value.trim() : instSelect.value;
+      if (!chosenInstitution) {
+        showNote(note, customInstitution
+          ? 'Enter the name of your institution.'
+          : 'Choose your institution, or add it if it is not listed.');
+        return;
+      }
+
       btn.disabled = true;
       try {
         const data = await api.register({

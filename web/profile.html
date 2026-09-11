@@ -108,7 +108,7 @@
           document.getElementById('notifications').checked = me.notifications !== false;
 
           const sel = document.getElementById('institution');
-          sel.innerHTML = '<option value="">Not specified</option>' +
+          sel.innerHTML = '<option value="">Select your institution</option>' +
             institutions.map((i) => `<option value="${i._id}">${escapeHtml(i.name)}</option>`).join('');
           if (me.institution) sel.value = me.institution._id || me.institution;
         })

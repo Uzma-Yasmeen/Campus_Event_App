@@ -3,6 +3,21 @@ const { generateQr, removeQr, isValidUrl, eventSummary } = require('../utils/qr'
 
 const CATEGORIES = Event.CATEGORIES;
 
+/**
+ * Events are scoped to a single campus: you only ever see events belonging to
+ * your own institution. Returns null when the user has not set one, in which
+ * case there is nothing they are entitled to see.
+ */
+function scopeOf(req) {
+  return req.user.institution ? String(req.user.institution) : null;
+}
+
+/** True when the event belongs to the caller's institution. */
+function inScope(event, req) {
+  const scope = scopeOf(req);
+  return !!scope && String(event.institution) === scope;
+}
+
 /** Pull the first uploaded file for a given field name. */
 function fileFor(req, field) {
   if (!req.files || !req.files[field] || !req.files[field][0]) return null;
@@ -42,8 +57,12 @@ async function applyQr(event, req) {
 // Optional filters: ?institution=<id>&category=<name>&q=<text>
 exports.listEvents = async (req, res) => {
   try {
-    const filter = {};
-    if (req.query.institution) filter.institution = req.query.institution;
+    // Hard scope to the caller's campus. A user without an institution has
+    // nothing in scope, so they get an empty list rather than everyone's events.
+    const scope = scopeOf(req);
+    if (!scope) return res.json([]);
+
+    const filter = { institution: scope };
     if (req.query.category) filter.category = req.query.category;
 
     if (req.query.q) {
@@ -73,7 +92,9 @@ exports.getEvent = async (req, res) => {
       .populate('institution', 'name code')
       .lean();
 
-    if (!event) return res.status(404).json({ message: 'Event not found' });
+    if (!event || !inScope(event, req)) {
+      return res.status(404).json({ message: 'Event not found' });
+    }
     res.json(event);
   } catch (err) {
     console.error('Get event error:', err.message || err);
@@ -84,7 +105,16 @@ exports.getEvent = async (req, res) => {
 // POST /api/events/create
 exports.createEvent = async (req, res) => {
   try {
-    const { title, description, date, location, institution, category, registrationUrl } = req.body;
+    const { title, description, date, location, category, registrationUrl } = req.body;
+
+    // The event always belongs to the organiser's own institution; a client
+    // cannot publish into a campus it is not part of.
+    const scope = scopeOf(req);
+    if (!scope) {
+      return res.status(400).json({
+        message: 'Set your institution in your profile before publishing events'
+      });
+    }
 
     if (!title || !date) {
       return res.status(400).json({ message: 'Title and date are required' });
@@ -107,7 +137,7 @@ exports.createEvent = async (req, res) => {
       category: category || 'Other',
       date: new Date(date),
       location: location || '',
-      institution: institution || null,
+      institution: scope,
       registrationUrl: registrationUrl ? String(registrationUrl).trim() : '',
       organizer: req.user._id,
       image: cover ? `/uploads/event-images/${cover.filename}` : ''
@@ -134,7 +164,7 @@ exports.updateEvent = async (req, res) => {
       return res.status(403).json({ message: 'Forbidden: you did not create this event' });
     }
 
-    const { title, description, date, location, institution, category, registrationUrl } = req.body;
+    const { title, description, date, location, category, registrationUrl } = req.body;
 
     if (title !== undefined) {
       if (!String(title).trim()) return res.status(400).json({ message: 'Title cannot be empty' });
@@ -142,7 +172,6 @@ exports.updateEvent = async (req, res) => {
     }
     if (description !== undefined) event.description = description;
     if (location !== undefined) event.location = location;
-    if (institution !== undefined) event.institution = institution || null;
 
     if (date !== undefined) {
       if (isNaN(new Date(date))) return res.status(400).json({ message: 'Date is not a valid date' });
@@ -197,7 +226,9 @@ exports.deleteEvent = async (req, res) => {
 exports.registerForEvent = async (req, res) => {
   try {
     const event = await Event.findById(req.params.id);
-    if (!event) return res.status(404).json({ message: 'Event not found' });
+    if (!event || !inScope(event, req)) {
+      return res.status(404).json({ message: 'Event not found' });
+    }
 
     if (event.participants.some((p) => String(p) === String(req.user._id))) {
       return res.status(400).json({ message: 'Already registered' });

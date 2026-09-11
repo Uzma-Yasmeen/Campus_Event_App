@@ -31,6 +31,11 @@ exports.register = async (req, res) => {
     if (role && !['student', 'organizer'].includes(role)) {
       return res.status(400).json({ message: 'Role must be student or organizer' });
     }
+    // Events are scoped per campus, so an account without an institution would
+    // have nothing to see. Require one up front rather than stranding the user.
+    if (!institution && !institutionName) {
+      return res.status(400).json({ message: 'Choose your institution, or add it if it is not listed' });
+    }
 
     const existing = await User.findOne({ email: email.toLowerCase() });
     if (existing) return res.status(409).json({ message: 'An account with this email already exists' });
@@ -41,6 +46,9 @@ exports.register = async (req, res) => {
     if (!institutionId && institutionName) {
       const created = await findOrCreateByName(institutionName);
       institutionId = created ? created._id : null;
+    }
+    if (!institutionId) {
+      return res.status(400).json({ message: 'That institution could not be resolved' });
     }
 
     const salt = await bcrypt.genSalt(10);

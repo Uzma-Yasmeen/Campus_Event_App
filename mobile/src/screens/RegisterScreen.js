@@ -30,6 +30,11 @@ export default function RegisterScreen() {
       setError('Password must be at least 6 characters.');
       return;
     }
+    // Events are scoped per campus, so an account needs an institution.
+    if (!institution) {
+      setError('Choose your institution.');
+      return;
+    }
     setBusy(true);
     try {
       await signUp({
@@ -76,6 +81,7 @@ export default function RegisterScreen() {
       </View>
 
       <Text style={s.label}>Institution</Text>
+      <Text style={s.hint}>You will see events from this campus.</Text>
       <View style={s.chips}>
         {institutions.map((i) => (
           <TouchableOpacity
@@ -110,5 +116,6 @@ const s = StyleSheet.create({
   chipActive: { backgroundColor: theme.colors.ink, borderColor: theme.colors.ink },
   chipText: { fontSize: 14, color: theme.colors.text },
   chipTextActive: { color: '#fff' },
-  muted: { color: theme.colors.muted, fontSize: 14 }
+  muted: { color: theme.colors.muted, fontSize: 14 },
+  hint: { color: theme.colors.muted, fontSize: 12, marginTop: -3, marginBottom: 8 }
 });

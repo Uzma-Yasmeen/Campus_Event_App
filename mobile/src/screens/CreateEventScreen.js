@@ -25,10 +25,6 @@ export default function CreateEventScreen({ route, navigation }) {
   });
   const [categories, setCategories] = useState([]);
   const [category, setCategory] = useState('Other');
-  const [institutions, setInstitutions] = useState([]);
-  const [institution, setInstitution] = useState(
-    (user.institution && (user.institution._id || user.institution)) || null
-  );
   const [image, setImage] = useState(null);
   const [qrFile, setQrFile] = useState(null);
   const [existingQr, setExistingQr] = useState(null);
@@ -37,7 +33,6 @@ export default function CreateEventScreen({ route, navigation }) {
 
   useEffect(() => {
     api.categories().then(setCategories).catch(() => setCategories(['Other']));
-    api.institutions().then(setInstitutions).catch(() => {});
   }, []);
 
   // Load the event being edited.
@@ -56,7 +51,6 @@ export default function CreateEventScreen({ route, navigation }) {
             `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`
         });
         setCategory(ev.category || 'Other');
-        setInstitution(ev.institution && (ev.institution._id || ev.institution));
         setExistingQr(ev.qrImage ? { uri: imageUrl(ev.qrImage), source: ev.qrSource } : null);
       })
       .catch((err) => setNote({ kind: 'error', message: err.message }));
@@ -97,7 +91,6 @@ export default function CreateEventScreen({ route, navigation }) {
     fd.append('category', category);
     fd.append('date', parsed.toISOString());
     fd.append('registrationUrl', form.registrationUrl.trim());
-    if (institution) fd.append('institution', institution);
     if (image) fd.append('image', filePart(image, `event-${Date.now()}.jpg`));
     if (qrFile) fd.append('qrImage', filePart(qrFile, `qr-${Date.now()}.png`));
 
@@ -166,17 +159,10 @@ export default function CreateEventScreen({ route, navigation }) {
       <Field label="Location" value={form.location} onChangeText={set('location')} autoCapitalize="sentences" />
 
       <Text style={s.label}>Institution</Text>
-      <View style={s.chips}>
-        {institutions.map((i) => (
-          <TouchableOpacity
-            key={i._id}
-            style={[s.chip, institution === i._id && s.chipActive]}
-            onPress={() => setInstitution(institution === i._id ? null : i._id)}
-          >
-            <Text style={[s.chipText, institution === i._id && s.chipTextActive]}>{i.name}</Text>
-          </TouchableOpacity>
-        ))}
-      </View>
+      <Text style={s.hint}>
+        {(user.institution && user.institution.name) || 'Not set'} — events are visible to
+        your campus only.
+      </Text>
 
       <Text style={s.section}>Registration &amp; QR code</Text>
       <Text style={s.hint}>
