@@ -9,11 +9,23 @@
 /* ---------- top bar ---------- */
 
 .lp-bar {
-  background: var(--surface);
-  border-bottom: 1px solid var(--border);
   position: sticky;
   top: 0;
   z-index: 30;
+  border-bottom: 1px solid var(--border);
+
+  /* Frosted glass only works where something passes behind it - here the page
+     scrolls under the bar. The fallback is the solid surface colour, which is
+     what browsers without backdrop-filter get. */
+  background: var(--surface);
+}
+
+@supports (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px)) {
+  .lp-bar {
+    background: var(--bar-glass);
+    -webkit-backdrop-filter: saturate(180%) blur(14px);
+    backdrop-filter: saturate(180%) blur(14px);
+  }
 }
 
 .lp-bar-inner {
@@ -325,11 +337,8 @@
   background: var(--border-strong);
 }
 
-/* The hero screenshot follows the page theme, so a light panel never sits
-   on a dark page. */
-/* `.lp-shot img` is more specific than a bare class, so these have to match
-   that specificity to win. */
-.lp-shot .shot-dark { display: none; }
-
-[data-theme="dark"] .lp-shot .shot-light { display: none; }
-[data-theme="dark"] .lp-shot .shot-dark { display: block; }
+/* One screenshot serves both themes. Rather than ship a second image, take
+   the glare off it in dark mode so it sits on the page instead of glowing. */
+[data-theme="dark"] .lp-shot img {
+  filter: brightness(0.88) contrast(1.02);
+}

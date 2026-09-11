@@ -25,6 +25,7 @@
   --wash: rgba(22, 50, 79, 0.045);
   --icon-bg: rgba(22, 50, 79, 0.055);
   --icon-border: rgba(22, 50, 79, 0.14);
+  --bar-glass: rgba(255, 255, 255, 0.72);
   --radius: 4px;
 }
 
@@ -53,6 +54,7 @@
   --wash: rgba(143, 180, 217, 0.05);
   --icon-bg: rgba(143, 180, 217, 0.09);
   --icon-border: rgba(143, 180, 217, 0.20);
+  --bar-glass: rgba(32, 34, 36, 0.68);
 }
 
 * { box-sizing: border-box; }
