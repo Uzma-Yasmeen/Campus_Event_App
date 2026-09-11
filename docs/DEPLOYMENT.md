@@ -98,12 +98,14 @@ The web client is static files with no build step.
 ### Point it at the API
 
 The web client defaults to `http://localhost:5000/api`, which will not work in
-production. Tell it where the API lives by adding one line to the top of each
-page's `<head>`, before `assets/api.js` loads:
+production. There is exactly one line to change, in
+[`web/assets/config.js`](../web/assets/config.js):
 
-```html
-<script>window.CAMPUS_API_BASE = 'https://campus-events-api.onrender.com/api';</script>
+```js
+window.CAMPUS_API_BASE = 'https://campus-events-api.onrender.com/api';
 ```
+
+Keep the trailing `/api`. Commit and push; Netlify redeploys automatically.
 
 ### Then close the CORS loop
 

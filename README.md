@@ -139,11 +139,11 @@ npx http-server web -p 5500
 # open http://localhost:5500
 ```
 
-If your API does not run on `http://localhost:5000/api`, set the base URL before
-loading `assets/api.js`:
+If your API does not run on `http://localhost:5000/api`, change the one line in
+[`web/assets/config.js`](web/assets/config.js):
 
-```html
-<script>window.CAMPUS_API_BASE = 'https://api.example.com/api';</script>
+```js
+window.CAMPUS_API_BASE = 'https://api.example.com/api';
 ```
 
 ### 3. Mobile app
