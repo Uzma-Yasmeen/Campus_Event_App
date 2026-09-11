@@ -612,3 +612,11 @@ th { font-weight: 600; font-size: 13px; color: var(--muted); }
   .brand-sub { display: none; }
   .qr { flex-direction: column; align-items: flex-start; }
 }
+
+/* ---------- logo ---------- */
+
+.logo-img { display: block; }
+
+/* A dark navy mark disappears against a dark ground, so lift it there.
+   Remove this rule if the logo already reads well in both themes. */
+[data-theme="dark"] .logo-img { filter: invert(1) brightness(1.9) saturate(0.6); }

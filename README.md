@@ -7,7 +7,7 @@ takes attendees straight to its registration form.
 The project ships three parts that share one REST API: a Node/Express backend, a web
 client, and a React Native mobile app.
 
-![Events, organiser view](docs/screenshots/events-organizer.png)
+![Landing page](docs/screenshots/landing.png)
 
 ---
 
@@ -88,8 +88,9 @@ campus_event_mobile/
 │   └── server.js            Entry point
 │
 ├── web/                     Browser client (no build step)
-│   ├── assets/              API client, shared helpers, stylesheet, logo
-│   ├── index.html           Sign in / create account
+│   ├── assets/              API client, shared helpers, stylesheets, logo
+│   ├── index.html           Landing page
+│   ├── signin.html          Sign in / create account
 │   ├── events.html          Event list, search, registration
 │   ├── create-event.html    Create and edit events
 │   ├── participants.html    Registration list for an organiser's event
@@ -145,6 +146,16 @@ If your API does not run on `http://localhost:5000/api`, change the one line in
 ```js
 window.CAMPUS_API_BASE = 'https://api.example.com/api';
 ```
+
+### Changing the logo
+
+The mark lives in one file, [`web/assets/logo.svg`](web/assets/logo.svg). Replace it and
+it updates across the landing page, every in-app header, and the browser tab. Any web
+image format works — if you swap in a PNG, update the two `<img src>` references and the
+`<link rel="icon">` tags to match the new extension.
+
+A dark mark is lifted in dark mode by a filter in `assets/styles.css`; if your logo
+already reads well on both grounds, delete that rule.
 
 ### 3. Mobile app
 
@@ -304,6 +315,10 @@ the registration link changes. Only `http` and `https` links are accepted.
 ---
 
 ## Screenshots
+
+**Landing page**
+
+![Landing page](docs/screenshots/landing.png)
 
 **Sign in**
 
