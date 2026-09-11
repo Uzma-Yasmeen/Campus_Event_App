@@ -59,9 +59,10 @@
 
       if (Auth.isOrganizer()) document.getElementById('create-link').hidden = false;
 
+      const campus = (Auth.user && Auth.user.institution && Auth.user.institution.name) || 'your campus';
       subtitle.textContent = Auth.isOrganizer()
-        ? 'Every event on the platform. You can edit or remove the ones you created.'
-        : 'Browse everything on offer and register for what interests you.';
+        ? `Events at ${campus}. You can edit or remove the ones you created.`
+        : `Events at ${campus}. Register for whatever interests you.`;
 
       /* ---------- icons ---------- */
       const icon = {
@@ -116,11 +117,21 @@
         const shown = tab === 'registered' ? events.filter(mine) : events;
 
         if (!shown.length) {
-          list.innerHTML = `<div class="empty" style="grid-column:1/-1">${
-            tab === 'registered'
-              ? 'You have not registered for any events yet.'
-              : 'No events match this search.'
-          }</div>`;
+          const hasInstitution = Auth.user && Auth.user.institution;
+          const searching = search.value.trim() || categorySelect.value;
+
+          let message;
+          if (tab === 'registered') {
+            message = 'You have not registered for any events yet.';
+          } else if (!hasInstitution) {
+            message = 'Set your institution in your profile to see events from your campus.';
+          } else if (searching) {
+            message = 'No events match this search.';
+          } else {
+            message = 'No events have been published at your institution yet.';
+          }
+
+          list.innerHTML = `<div class="empty" style="grid-column:1/-1">${escapeHtml(message)}</div>`;
           return;
         }
 

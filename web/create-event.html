@@ -53,10 +53,11 @@
             <input id="location" type="text" placeholder="e.g. Main Auditorium" />
           </div>
           <div class="field">
-            <label for="institution">Institution</label>
-            <select id="institution"><option value="">Loading&hellip;</option></select>
-            <p class="small" style="margin:5px 0 0">
-              <a href="#" id="add-institution">Not listed? Add it</a>
+            <label for="institution-display">Institution</label>
+            <input id="institution-display" type="text" readonly />
+            <p class="small muted" style="margin:5px 0 0">
+              Events are visible to your campus only. Change your institution in
+              <a href="profile.html">your profile</a>.
             </p>
           </div>
         </div>
@@ -127,35 +128,18 @@
       }
 
       /* ---------- reference data ---------- */
-      const ready = Promise.all([
-        api.categories().catch(() => ['Other']),
-        api.institutions().catch(() => [])
-      ]).then(([cats, institutions]) => {
+      const myInstitution = Auth.user && Auth.user.institution;
+      document.getElementById('institution-display').value =
+        (myInstitution && myInstitution.name) ? myInstitution.name : 'Not set';
+
+      if (!myInstitution) {
+        showNote(note, 'Set your institution in your profile before publishing events.');
+        submitBtn.disabled = true;
+      }
+
+      const ready = api.categories().catch(() => ['Other']).then((cats) => {
         document.getElementById('category').innerHTML =
           cats.map((c) => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
-
-        const sel = document.getElementById('institution');
-        sel.innerHTML = '<option value="">Not specified</option>' +
-          institutions.map((i) => `<option value="${i._id}">${escapeHtml(i.name)}</option>`).join('');
-
-        const mine = Auth.user && Auth.user.institution;
-        if (mine && !isEdit) sel.value = mine._id || mine;
-      });
-
-      document.getElementById('add-institution').addEventListener('click', async (e) => {
-        e.preventDefault();
-        const name = prompt('Name of the institution to add:');
-        if (!name || !name.trim()) return;
-        try {
-          const created = await api.createInstitution({ name: name.trim() });
-          const sel = document.getElementById('institution');
-          sel.insertAdjacentHTML('beforeend',
-            `<option value="${created._id}">${escapeHtml(created.name)}</option>`);
-          sel.value = created._id;
-          showNote(note, `Added ${created.name}.`, 'ok');
-        } catch (err) {
-          showNote(note, err.message);
-        }
       });
 
       /* ---------- prefill when editing ---------- */
@@ -166,9 +150,6 @@
           document.getElementById('category').value = ev.category || 'Other';
           document.getElementById('location').value = ev.location || '';
           document.getElementById('registrationUrl').value = ev.registrationUrl || '';
-
-          const inst = ev.institution && (ev.institution._id || ev.institution);
-          if (inst) document.getElementById('institution').value = inst;
 
           // datetime-local needs a local-time string without the timezone suffix.
           const d = new Date(ev.date);
@@ -206,9 +187,6 @@
         fd.append('date', new Date(document.getElementById('date').value).toISOString());
         fd.append('location', document.getElementById('location').value.trim());
         fd.append('registrationUrl', document.getElementById('registrationUrl').value.trim());
-
-        const inst = document.getElementById('institution').value;
-        if (inst) fd.append('institution', inst);
 
         const cover = document.getElementById('image').files[0];
         if (cover) fd.append('image', cover);

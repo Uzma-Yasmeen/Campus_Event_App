@@ -32,6 +32,7 @@ client, and a React Native mobile app.
 **Accounts and access**
 - Email and password sign-up with bcrypt-hashed passwords and JWT sessions
 - Two roles — participant and organiser — enforced on the server, not just hidden in the UI
+- Every account belongs to an institution, and **events are scoped to that campus**
 - Institution directory; users whose college is missing can add it during sign-up
 - Editable profile, password change, avatar upload, light and dark theme
 
@@ -206,6 +207,7 @@ Both machines must be on the same network, and the backend must be reachable fro
 ```bash
 npm run seed          # populate the institution directory
 npm run backfill:qr   # generate QR codes for any events created before QR support
+npm run backfill:institution   # assign a campus to events created before scoping
 ```
 
 ---
@@ -245,14 +247,15 @@ All routes are prefixed with `/api`. Authenticated routes expect an
 | `POST` | `/auth/login` | Public | Sign in; returns a token |
 | `GET` | `/auth/me` | Authenticated | Current user |
 
-`register` accepts either `institution` (an id) or `institutionName` (a name, created if
-it does not exist yet).
+`register` requires either `institution` (an id) or `institutionName` (a name, created if
+it does not exist yet). Accounts cannot exist without an institution, because event
+visibility depends on it.
 
 ### Events
 
 | Method | Endpoint | Access | Description |
 |---|---|---|---|
-| `GET` | `/events` | Authenticated | List events. Filters: `?category=`, `?institution=`, `?q=` |
+| `GET` | `/events` | Authenticated | List events at the caller's institution. Filters: `?category=`, `?q=` |
 | `GET` | `/events/:id` | Authenticated | A single event |
 | `POST` | `/events/create` | Organiser | Create an event (multipart: `image`, `qrImage`) |
 | `PUT` | `/events/:id` | Event owner | Update an event |
@@ -295,6 +298,22 @@ the client sends.
 
 An organiser who did not create an event sees it exactly as a participant does — no edit
 or delete controls, and the API returns `403` if those endpoints are called directly.
+
+### Campus scoping
+
+Every rule above applies *within an institution*. Events belong to the campus of the
+organiser who published them, and a user only ever sees their own campus:
+
+- `GET /events` filters to the caller's institution; there is no parameter to widen it
+- `GET /events/:id` returns `404` for an event at another institution, so its existence
+  is not disclosed
+- `POST /events/:id/register` likewise returns `404` across campuses
+- On create, the institution is taken from the organiser's account. A client cannot
+  publish into a campus it does not belong to, whatever it puts in the request body
+
+Because of this, an account without an institution would have nothing to see, so one is
+required at sign-up. Existing installations can run `npm run backfill:institution`, which
+assigns each unscoped event to its organiser's campus.
 
 ---
 

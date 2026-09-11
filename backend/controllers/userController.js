@@ -28,6 +28,8 @@ exports.updateProfile = async (req, res) => {
     const updates = {};
     if (name) updates.name = name;
     if (email) updates.email = email.toLowerCase();
+    // Clearing the institution would leave the account unable to see anything,
+    // so only accept a change to another institution, never to empty.
     if (institution) updates.institution = institution;
 
     const user = await User.findByIdAndUpdate(req.user._id, updates, { new: true }).select('-password');
