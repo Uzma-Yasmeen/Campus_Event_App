@@ -18,6 +18,7 @@ client, and a React Native mobile app.
 - [Project layout](#project-layout)
 - [Getting started](#getting-started)
 - [Configuration](#configuration)
+- [Deployment](#deployment)
 - [API reference](#api-reference)
 - [Roles and permissions](#roles-and-permissions)
 - [How QR codes work](#how-qr-codes-work)
@@ -41,6 +42,11 @@ client, and a React Native mobile app.
 - Register for an event; the organiser sees the full participant list
 - "All events" and "Registered" views
 
+**Production readiness**
+- CORS allowlist, rate-limited auth and upload routes, security headers
+- Graceful shutdown, health check endpoint, startup config validation
+- QR codes rebuild themselves if the host wipes the filesystem
+
 **QR codes**
 - Every event gets a QR code automatically
 - Paste a Google Form (or any http/https link) and the code is generated pointing at it
@@ -57,6 +63,7 @@ client, and a React Native mobile app.
 | Database | MongoDB |
 | Auth | JSON Web Tokens, bcryptjs |
 | Uploads | Multer (images, 5 MB cap, type-checked) |
+| Hardening | helmet, express-rate-limit, CORS allowlist, compression |
 | QR | `qrcode` — rendered server-side to PNG |
 | Web | HTML, CSS and vanilla JavaScript — no build step |
 | Mobile | React Native (Expo), React Navigation |
@@ -189,6 +196,28 @@ Both machines must be on the same network, and the backend must be reachable fro
 npm run seed          # populate the institution directory
 npm run backfill:qr   # generate QR codes for any events created before QR support
 ```
+
+---
+
+## Deployment
+
+The project can be hosted end to end on free tiers — MongoDB Atlas for the database,
+Render for the API, Netlify for the web client — with no card required. A
+[`render.yaml`](render.yaml) blueprint is included so Render can configure the API
+itself.
+
+**[docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)** is the full walkthrough, including the
+environment variables, how to close the CORS loop, and the one real limitation of free
+hosting (an ephemeral filesystem, and what that does and does not affect).
+
+Production settings are driven entirely by environment variables, so the same code runs
+locally and deployed:
+
+| Variable | Effect |
+|---|---|
+| `NODE_ENV=production` | Enables the CORS allowlist; stops internal errors reaching clients |
+| `CORS_ORIGINS` | Comma-separated list of origins permitted to call the API |
+| `TRUST_PROXY=1` | Reads the real client IP behind a platform proxy, so rate limiting is per-user |
 
 ---
 
@@ -327,8 +356,9 @@ Known gaps, in rough priority order:
 - No automated test suite
 - No pagination — every event is loaded at once, which is fine at this scale but will not
   stay that way
-- Before any public deployment: restrict CORS to a known origin, add rate limiting to the
-  auth routes, replace `JWT_SECRET`, and move uploads off local disk
+- Uploaded images do not survive a restart on hosts with an ephemeral filesystem.
+  Generated QR codes do, because they are rebuilt on demand. See
+  [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for the options
 
 ---
 

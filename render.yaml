@@ -1,0 +1,39 @@
+# Render blueprint for the Campus Events API.
+#
+# Render can read this file directly: New > Blueprint, point it at this repo,
+# and it will create the service with these settings. MONGO_URI and
+# CORS_ORIGINS are marked sync:false, so Render prompts for them rather than
+# keeping secrets in the repository.
+#
+# See docs/DEPLOYMENT.md for the full walkthrough.
+
+services:
+  - type: web
+    name: campus-events-api
+    runtime: node
+    plan: free
+    rootDir: backend
+    buildCommand: npm ci
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+
+      # Render terminates TLS at its own proxy, so the app must trust one hop
+      # to see the real client IP for rate limiting.
+      - key: TRUST_PROXY
+        value: 1
+
+      # Generated once by Render and kept between deploys.
+      - key: JWT_SECRET
+        generateValue: true
+
+      # Entered in the Render dashboard - never committed.
+      - key: MONGO_URI
+        sync: false
+
+      # The origin your web client is served from, e.g.
+      # https://campus-events.netlify.app
+      - key: CORS_ORIGINS
+        sync: false
