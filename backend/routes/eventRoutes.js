@@ -4,6 +4,7 @@ const auth = require('../middleware/authMiddleware');
 const { permit } = require('../middleware/roleMiddleware');
 const upload = require('../utils/upload');
 const eventController = require('../controllers/eventController');
+const { uploadLimiter } = require('../middleware/rateLimit');
 
 // GET /api/events/meta/categories - the allowed category values
 router.get('/meta/categories', eventController.getCategories);
@@ -16,6 +17,7 @@ router.post(
   '/create',
   auth,
   permit('organizer'),
+  uploadLimiter,
   upload.eventUpload,
   eventController.createEvent
 );
@@ -28,6 +30,7 @@ router.put(
   '/:id',
   auth,
   permit('organizer'),
+  uploadLimiter,
   upload.eventUpload,
   eventController.updateEvent
 );

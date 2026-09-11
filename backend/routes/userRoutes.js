@@ -4,6 +4,7 @@ const auth = require('../middleware/authMiddleware');
 const { permit } = require('../middleware/roleMiddleware');
 const upload = require('../utils/upload');
 const userController = require('../controllers/userController');
+const { uploadLimiter } = require('../middleware/rateLimit');
 
 // GET /users/profile
 router.get('/profile', auth, userController.getProfile);
@@ -18,6 +19,6 @@ router.put('/change-password', auth, userController.changePassword);
 router.put('/settings', auth, userController.updateSettings);
 
 // POST /users/avatar (upload avatar) - optional
-router.post('/avatar', auth, upload.single('avatar'), userController.uploadAvatar);
+router.post('/avatar', auth, uploadLimiter, upload.single('avatar'), userController.uploadAvatar);
 
 module.exports = router;
