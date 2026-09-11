@@ -1,11 +1,8 @@
 /* Shared page helpers: theme, nav rendering, guards, formatting. */
 
-const LOGO_SVG = `<svg viewBox="0 0 24 24" width="19" height="19" aria-hidden="true" focusable="false" style="display:block">
-  <rect x="2.5" y="4.5" width="19" height="17" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.8"/>
-  <path d="M2.5 9.5 h19" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-  <path d="M7.5 2.5 v4 M16.5 2.5 v4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-  <circle cx="12" cy="15.5" r="2.25" fill="currentColor"/>
-</svg>`;
+/* The logo lives in one place: assets/logo.svg. Replace that file to change
+   it across every page - any web image format works. */
+const LOGO_IMG = '<img src="assets/logo.svg" alt="" width="20" height="20" class="logo-img" />';
 
 const ICON_SUN = `<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true">
   <circle cx="12" cy="12" r="4"/>
@@ -44,7 +41,7 @@ Theme.apply(Theme.get());
 
 function requireAuth() {
   if (!Auth.token) {
-    window.location.href = 'index.html';
+    window.location.href = 'signin.html';
     return false;
   }
   return true;
@@ -86,7 +83,7 @@ function renderNav(current) {
   document.getElementById('topbar').innerHTML = `
     <div class="topbar-inner">
       <a class="brand" href="events.html">
-        <span class="mark">${LOGO_SVG}</span>
+        <span class="mark">${LOGO_IMG}</span>
         <span>Campus Events</span>
       </a>
       ${institutionName ? `<span class="brand-sub">${escapeHtml(institutionName)}</span>` : ''}
@@ -154,7 +151,7 @@ function renderNav(current) {
 
   document.getElementById('logout').addEventListener('click', () => {
     Auth.clear();
-    window.location.href = 'index.html';
+    window.location.href = 'signin.html';
   });
 }
 

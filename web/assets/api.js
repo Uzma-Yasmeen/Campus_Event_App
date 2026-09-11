@@ -38,7 +38,7 @@ async function request(path, { method = 'GET', body, auth = true, raw = false } 
   // An expired or invalid token should send the user back to sign-in.
   if (res.status === 401 && auth && Auth.token) {
     Auth.clear();
-    window.location.href = 'index.html';
+    window.location.href = 'signin.html';
     throw new Error('Session expired');
   }
 

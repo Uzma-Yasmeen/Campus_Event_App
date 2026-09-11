@@ -1,12 +1,9 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" role="img" aria-label="Campus Events">
-  <!-- calendar body -->
-  <rect x="2.5" y="4.5" width="19" height="17" rx="2.5"
-        fill="none" stroke="currentColor" stroke-width="1.8" />
-  <!-- header band -->
-  <path d="M2.5 9.5 h19" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
-  <!-- binding posts -->
-  <path d="M7.5 2.5 v4 M16.5 2.5 v4"
-        stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
-  <!-- the marked date -->
-  <circle cx="12" cy="15.5" r="2.25" fill="currentColor" />
+  <!-- Replace this file to change the logo everywhere in the web client. -->
+  <g fill="none" stroke="#16324f" stroke-width="1.8" stroke-linecap="round">
+    <rect x="2.5" y="4.5" width="19" height="17" rx="2.5" />
+    <path d="M2.5 9.5 h19" />
+    <path d="M7.5 2.5 v4 M16.5 2.5 v4" />
+  </g>
+  <circle cx="12" cy="15.5" r="2.25" fill="#16324f" />
 </svg>

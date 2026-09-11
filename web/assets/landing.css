@@ -1,0 +1,237 @@
+/* Landing page - layered on top of styles.css */
+
+.lp-wrap {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding-inline: 24px;
+}
+
+/* ---------- top bar ---------- */
+
+.lp-bar {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 30;
+}
+
+.lp-bar-inner {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding-inline: 24px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  gap: 28px;
+}
+
+.lp-nav {
+  display: flex;
+  gap: 22px;
+  flex: 1;
+}
+
+.lp-nav a {
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 14px;
+}
+
+.lp-nav a:hover { color: var(--text); }
+
+.lp-bar-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+
+/* ---------- hero ---------- */
+
+.lp-hero {
+  border-bottom: 1px solid var(--border);
+  padding-block: 72px;
+  background: var(--surface);
+}
+
+.lp-hero-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 56px;
+  align-items: center;
+}
+
+.lp-eyebrow {
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin: 0 0 14px;
+}
+
+.lp-title {
+  font-size: 40px;
+  line-height: 1.15;
+  letter-spacing: -0.022em;
+  font-weight: 600;
+  margin: 0 0 18px;
+  max-width: 20ch;
+}
+
+.lp-lead {
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--muted);
+  margin: 0 0 26px;
+  max-width: 46ch;
+}
+
+.lp-cta { display: flex; gap: 10px; flex-wrap: wrap; }
+.lp-cta-center { justify-content: center; }
+
+.lp-cta .btn { padding: 10px 18px; font-size: 15px; }
+
+.lp-note { font-size: 13px; color: var(--muted); margin: 14px 0 0; }
+
+.lp-shot {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--bg);
+  box-shadow: 0 16px 40px rgba(20, 20, 18, 0.10);
+}
+
+[data-theme="dark"] .lp-shot { box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45); }
+
+.lp-shot img { display: block; width: 100%; height: auto; }
+
+/* ---------- sections ---------- */
+
+.lp-section { padding-block: 72px; }
+.lp-alt { background: var(--surface); border-block: 1px solid var(--border); }
+
+.lp-h2 {
+  font-size: 26px;
+  font-weight: 600;
+  letter-spacing: -0.018em;
+  margin: 0 0 10px;
+  max-width: 24ch;
+}
+
+.lp-sub {
+  font-size: 15px;
+  color: var(--muted);
+  margin: 0 0 32px;
+  max-width: 60ch;
+}
+
+.lp-h2 + .lp-grid-3, .lp-h2 + .lp-steps { margin-top: 36px; }
+
+/* ---------- feature cards ---------- */
+
+.lp-grid-3 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(268px, 1fr));
+  gap: 20px;
+}
+
+.lp-card {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 22px;
+}
+
+/* Cards sit on whichever ground the section is not using. */
+.lp-card { background: var(--surface); }
+.lp-alt .lp-card { background: var(--bg); }
+
+.lp-icon {
+  width: 34px;
+  height: 34px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ink);
+  margin-bottom: 14px;
+  background: var(--subtle);
+}
+
+.lp-icon svg { width: 18px; height: 18px; }
+
+.lp-card h3 { font-size: 15px; font-weight: 600; margin: 0 0 7px; }
+.lp-card p { font-size: 14px; line-height: 1.6; color: var(--muted); margin: 0; }
+
+/* ---------- steps ---------- */
+
+.lp-steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(268px, 1fr));
+  gap: 28px;
+}
+
+.lp-steps li { display: flex; gap: 14px; align-items: flex-start; }
+
+.lp-step-n {
+  flex: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--ink);
+  color: var(--on-ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.lp-steps h3 { font-size: 15px; font-weight: 600; margin: 3px 0 7px; }
+.lp-steps p { font-size: 14px; line-height: 1.6; color: var(--muted); margin: 0; }
+
+/* ---------- roles table ---------- */
+
+.lp-table { border: 1px solid var(--border); background: var(--surface); }
+.lp-table th, .lp-table td { padding: 12px 14px; }
+.lp-table thead th { background: var(--subtle); }
+.lp-table tbody tr:last-child td { border-bottom: none; }
+.lp-table td.no { color: var(--muted); }
+
+/* ---------- closing + footer ---------- */
+
+.lp-closing { text-align: center; }
+.lp-closing .lp-h2 { max-width: 30ch; margin-inline: auto; margin-bottom: 26px; }
+
+.lp-footer {
+  border-top: 1px solid var(--border);
+  padding-block: 28px;
+  background: var(--surface);
+}
+
+.lp-footer-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+/* ---------- narrow screens ---------- */
+
+@media (max-width: 900px) {
+  .lp-hero-grid { grid-template-columns: 1fr; gap: 40px; }
+  .lp-title { font-size: 32px; max-width: none; }
+  .lp-nav { display: none; }
+}
+
+@media (max-width: 560px) {
+  .lp-hero, .lp-section { padding-block: 48px; }
+  .lp-title { font-size: 27px; }
+  .lp-bar-inner { gap: 12px; }
+  .lp-bar-actions .btn-secondary { display: none; }
+}
