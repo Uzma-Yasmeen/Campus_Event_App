@@ -32,25 +32,10 @@ async function generateQr(eventId, payload) {
   return `/uploads/qr/${filename}`;
 }
 
-/**
- * Text encoded when an event has no registration link, so that every event
- * still carries a QR code that shows something useful when scanned.
- */
-function eventSummary(event) {
-  const when = event.date ? new Date(event.date).toUTCString() : '';
-  return [
-    'Campus Events',
-    `Event: ${event.title}`,
-    event.category ? `Category: ${event.category}` : '',
-    when ? `When: ${when}` : '',
-    event.location ? `Where: ${event.location}` : ''
-  ].filter(Boolean).join('\n');
-}
-
 /** Remove a generated QR file; safe to call when the file is already gone. */
 function removeQr(eventId) {
   const file = path.join(QR_DIR, `event-${eventId}.png`);
   fs.promises.unlink(file).catch(() => {});
 }
 
-module.exports = { generateQr, removeQr, isValidUrl, eventSummary };
+module.exports = { generateQr, removeQr, isValidUrl };

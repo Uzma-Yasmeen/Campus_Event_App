@@ -1,7 +1,7 @@
 const path = require('path');
 const fs = require('fs');
 const Event = require('../models/Event');
-const { generateQr, isValidUrl, eventSummary } = require('../utils/qr');
+const { generateQr, isValidUrl } = require('../utils/qr');
 
 const QR_DIR = path.join(__dirname, '..', 'uploads', 'qr');
 
@@ -28,11 +28,11 @@ module.exports = async function ensureQr(req, res, next) {
     const event = await Event.findById(match[1]);
     if (!event) return next();
 
-    const payload = (event.registrationUrl && isValidUrl(event.registrationUrl))
-      ? event.registrationUrl
-      : eventSummary(event);
+    // Only codes that encode a registration link are rebuildable; an event
+    // without one has no QR by design.
+    if (!event.registrationUrl || !isValidUrl(event.registrationUrl)) return next();
 
-    await generateQr(event._id, payload);
+    await generateQr(event._id, event.registrationUrl);
     console.log(`Regenerated missing QR code for event ${event._id}`);
   } catch (err) {
     // Fall through to the static handler, which will return a normal 404.

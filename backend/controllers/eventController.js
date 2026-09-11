@@ -1,5 +1,5 @@
 const Event = require('../models/Event');
-const { generateQr, removeQr, isValidUrl, eventSummary } = require('../utils/qr');
+const { generateQr, removeQr, isValidUrl } = require('../utils/qr');
 
 const CATEGORIES = Event.CATEGORIES;
 
@@ -25,10 +25,14 @@ function fileFor(req, field) {
 }
 
 /**
- * Give the event a QR code.
+ * Give the event a QR code, when there is something worth encoding.
  *
- * An organiser who already has a QR code can upload it, and that always wins.
- * Otherwise, if a registration link was supplied, render a QR for it.
+ * An organiser who already has a code can upload it, and that always wins.
+ * Otherwise a code is rendered for the registration link.
+ *
+ * With neither, the event gets no QR at all. Encoding the event's details as
+ * plain text was tried and removed: a phone camera shows the raw text with
+ * nothing to tap, so the code looked functional and did nothing.
  */
 async function applyQr(event, req) {
   const uploaded = fileFor(req, 'qrImage');
@@ -41,16 +45,17 @@ async function applyQr(event, req) {
   }
 
   // Keep an existing uploaded code unless the organiser changes the link.
-  if (event.qrSource === 'uploaded' && !req.body.registrationUrl) return;
+  if (event.qrSource === 'uploaded' && req.body.registrationUrl === undefined) return;
 
-  // Every event carries a QR code: the registration link when there is one,
-  // otherwise the event's own details so a scan still shows something useful.
-  const payload = (event.registrationUrl && isValidUrl(event.registrationUrl))
-    ? event.registrationUrl
-    : eventSummary(event);
+  if (event.registrationUrl && isValidUrl(event.registrationUrl)) {
+    event.qrImage = await generateQr(event._id, event.registrationUrl);
+    event.qrSource = 'generated';
+    return;
+  }
 
-  event.qrImage = await generateQr(event._id, payload);
-  event.qrSource = 'generated';
+  removeQr(event._id);
+  event.qrImage = '';
+  event.qrSource = 'none';
 }
 
 // GET /api/events
