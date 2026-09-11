@@ -51,8 +51,35 @@
 
 .lp-hero {
   border-bottom: 1px solid var(--border);
-  padding-block: 72px;
+  padding-block: 86px;
   background: var(--surface);
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+/* A fine grid, barely there - gives the panel depth without decoration. */
+.lp-hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  background-image:
+    linear-gradient(to right, var(--grid-line) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--grid-line) 1px, transparent 1px);
+  background-size: 56px 56px;
+  mask-image: radial-gradient(ellipse 90% 70% at 50% 40%, #000 30%, transparent 100%);
+}
+
+/* A soft wash in the brand colour, lifting the centre of the panel. */
+.lp-hero::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(ellipse 60% 50% at 15% 0%, var(--wash) 0%, transparent 70%),
+    radial-gradient(ellipse 50% 60% at 95% 100%, var(--wash) 0%, transparent 70%);
 }
 
 .lp-hero-grid {
@@ -95,14 +122,24 @@
 .lp-note { font-size: 13px; color: var(--muted); margin: 14px 0 0; }
 
 .lp-shot {
+  position: relative;
   border: 1px solid var(--border);
-  border-radius: 6px;
+  border-radius: 8px;
   overflow: hidden;
   background: var(--bg);
-  box-shadow: 0 16px 40px rgba(20, 20, 18, 0.10);
+  /* Stacked shadows read as depth rather than as a drop shadow. */
+  box-shadow:
+    0 1px 1px rgba(20, 20, 18, 0.04),
+    0 8px 16px rgba(20, 20, 18, 0.06),
+    0 24px 48px rgba(20, 20, 18, 0.09);
 }
 
-[data-theme="dark"] .lp-shot { box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45); }
+[data-theme="dark"] .lp-shot {
+  box-shadow:
+    0 1px 1px rgba(0, 0, 0, 0.30),
+    0 8px 16px rgba(0, 0, 0, 0.34),
+    0 24px 48px rgba(0, 0, 0, 0.44);
+}
 
 .lp-shot img { display: block; width: 100%; height: auto; }
 
@@ -138,8 +175,19 @@
 
 .lp-card {
   border: 1px solid var(--border);
-  border-radius: var(--radius);
+  border-radius: 7px;
   padding: 22px;
+  transition: border-color 140ms ease, box-shadow 140ms ease, transform 140ms ease;
+}
+
+.lp-card:hover {
+  border-color: var(--border-strong);
+  box-shadow: 0 2px 4px rgba(20, 20, 18, 0.04), 0 10px 22px rgba(20, 20, 18, 0.06);
+  transform: translateY(-2px);
+}
+
+[data-theme="dark"] .lp-card:hover {
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.30), 0 10px 22px rgba(0, 0, 0, 0.38);
 }
 
 /* Cards sit on whichever ground the section is not using. */
@@ -147,16 +195,16 @@
 .lp-alt .lp-card { background: var(--bg); }
 
 .lp-icon {
-  width: 34px;
-  height: 34px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--icon-border);
+  border-radius: 7px;
   display: flex;
   align-items: center;
   justify-content: center;
   color: var(--ink);
-  margin-bottom: 14px;
-  background: var(--subtle);
+  margin-bottom: 15px;
+  background: var(--icon-bg);
 }
 
 .lp-icon svg { width: 18px; height: 18px; }
@@ -235,3 +283,53 @@
   .lp-bar-inner { gap: 12px; }
   .lp-bar-actions .btn-secondary { display: none; }
 }
+
+/* ---------- entrance ---------- */
+
+/* Content settles in as it comes into view. Deliberately short and small:
+   enough to feel considered, not enough to make anyone wait. */
+.reveal {
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity 420ms cubic-bezier(0.22, 0.61, 0.36, 1),
+              transform 420ms cubic-bezier(0.22, 0.61, 0.36, 1);
+  will-change: opacity, transform;
+}
+
+.reveal.shown { opacity: 1; transform: none; }
+
+/* Anyone who has asked for less motion gets the finished state immediately. */
+@media (prefers-reduced-motion: reduce) {
+  .reveal { opacity: 1; transform: none; transition: none; }
+  .lp-card { transition: none; }
+  .lp-card:hover { transform: none; }
+}
+
+/* ---------- section eyebrow ---------- */
+
+.lp-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 12px;
+}
+
+.lp-kicker::before {
+  content: '';
+  width: 18px;
+  height: 1px;
+  background: var(--border-strong);
+}
+
+/* The hero screenshot follows the page theme, so a light panel never sits
+   on a dark page. */
+/* `.lp-shot img` is more specific than a bare class, so these have to match
+   that specificity to win. */
+.lp-shot .shot-dark { display: none; }
+
+[data-theme="dark"] .lp-shot .shot-light { display: none; }
+[data-theme="dark"] .lp-shot .shot-dark { display: block; }
