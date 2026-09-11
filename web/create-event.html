@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Create event &middot; Campus Events</title>
+  <link rel="icon" href="assets/logo.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="assets/styles.css" />
+  <script>
+    document.documentElement.setAttribute(
+      'data-theme', localStorage.getItem('ce_theme') === 'dark' ? 'dark' : 'light');
+  </script>
+</head>
+<body>
+  <header class="topbar" id="topbar"></header>
+
+  <main class="page" style="max-width:660px">
+    <div class="page-head">
+      <div>
+        <h1 id="heading">Create an event</h1>
+        <p class="sub">Only organisers can publish events.</p>
+      </div>
+    </div>
+
+    <div id="note"></div>
+
+    <div class="card">
+      <form id="form">
+        <div class="field">
+          <label for="title">Title</label>
+          <input id="title" type="text" required />
+        </div>
+
+        <div class="field">
+          <label for="description">Description</label>
+          <textarea id="description" placeholder="What is the event about?"></textarea>
+        </div>
+
+        <div class="row">
+          <div class="field">
+            <label for="category">Category</label>
+            <select id="category"><option value="">Loading&hellip;</option></select>
+          </div>
+          <div class="field">
+            <label for="date">Date and time</label>
+            <input id="date" type="datetime-local" required />
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="field">
+            <label for="location">Location</label>
+            <input id="location" type="text" placeholder="e.g. Main Auditorium" />
+          </div>
+          <div class="field">
+            <label for="institution">Institution</label>
+            <select id="institution"><option value="">Loading&hellip;</option></select>
+            <p class="small" style="margin:5px 0 0">
+              <a href="#" id="add-institution">Not listed? Add it</a>
+            </p>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="image">Cover image</label>
+          <input id="image" type="file" accept="image/jpeg,image/png,image/webp" />
+          <p class="small muted" style="margin:5px 0 0">JPEG, PNG or WebP. Maximum 5 MB.</p>
+        </div>
+      </form>
+    </div>
+
+    <div class="card">
+      <h2>Registration &amp; QR code</h2>
+      <p class="small muted" style="margin:-6px 0 14px">
+        Every event gets a QR code. Paste a registration link and one is generated for you,
+        or upload a code you already have.
+      </p>
+
+      <div class="field">
+        <label for="registrationUrl">Registration form link</label>
+        <input id="registrationUrl" type="url" placeholder="https://forms.gle/..." form="form" />
+        <p class="small muted" style="margin:5px 0 0">
+          A Google Form or any other http(s) link. The QR code will point here.
+        </p>
+      </div>
+
+      <div class="field">
+        <label for="qrImage">Or upload your own QR code</label>
+        <input id="qrImage" type="file" accept="image/jpeg,image/png,image/webp" form="form" />
+        <p class="small muted" style="margin:5px 0 0">
+          An uploaded code takes priority over a generated one.
+        </p>
+      </div>
+
+      <div id="existing-qr"></div>
+    </div>
+
+    <div style="display:flex;gap:8px;margin-top:16px">
+      <button type="submit" form="form" id="submit">Publish event</button>
+      <a class="btn btn-secondary" href="events.html">Cancel</a>
+    </div>
+  </main>
+
+  <script src="assets/api.js"></script>
+  <script src="assets/app.js"></script>
+  <script>
+    if (requireAuth()) {
+      renderNav('create-event.html');
+
+      const note = document.getElementById('note');
+      const form = document.getElementById('form');
+      const submitBtn = document.getElementById('submit');
+      const eventId = new URLSearchParams(location.search).get('id');
+      const isEdit = !!eventId;
+
+      if (isEdit) {
+        document.getElementById('heading').textContent = 'Edit event';
+        document.title = 'Edit event · Campus Events';
+        submitBtn.textContent = 'Save changes';
+      }
+
+      if (!Auth.isOrganizer()) {
+        form.querySelectorAll('input, select, textarea').forEach((el) => (el.disabled = true));
+        submitBtn.disabled = true;
+        showNote(note, 'Your account is a participant account, so you cannot publish events.');
+      }
+
+      /* ---------- reference data ---------- */
+      const ready = Promise.all([
+        api.categories().catch(() => ['Other']),
+        api.institutions().catch(() => [])
+      ]).then(([cats, institutions]) => {
+        document.getElementById('category').innerHTML =
+          cats.map((c) => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
+
+        const sel = document.getElementById('institution');
+        sel.innerHTML = '<option value="">Not specified</option>' +
+          institutions.map((i) => `<option value="${i._id}">${escapeHtml(i.name)}</option>`).join('');
+
+        const mine = Auth.user && Auth.user.institution;
+        if (mine && !isEdit) sel.value = mine._id || mine;
+      });
+
+      document.getElementById('add-institution').addEventListener('click', async (e) => {
+        e.preventDefault();
+        const name = prompt('Name of the institution to add:');
+        if (!name || !name.trim()) return;
+        try {
+          const created = await api.createInstitution({ name: name.trim() });
+          const sel = document.getElementById('institution');
+          sel.insertAdjacentHTML('beforeend',
+            `<option value="${created._id}">${escapeHtml(created.name)}</option>`);
+          sel.value = created._id;
+          showNote(note, `Added ${created.name}.`, 'ok');
+        } catch (err) {
+          showNote(note, err.message);
+        }
+      });
+
+      /* ---------- prefill when editing ---------- */
+      if (isEdit) {
+        ready.then(() => api.getEvent(eventId)).then((ev) => {
+          document.getElementById('title').value = ev.title || '';
+          document.getElementById('description').value = ev.description || '';
+          document.getElementById('category').value = ev.category || 'Other';
+          document.getElementById('location').value = ev.location || '';
+          document.getElementById('registrationUrl').value = ev.registrationUrl || '';
+
+          const inst = ev.institution && (ev.institution._id || ev.institution);
+          if (inst) document.getElementById('institution').value = inst;
+
+          // datetime-local needs a local-time string without the timezone suffix.
+          const d = new Date(ev.date);
+          if (!isNaN(d)) {
+            const pad = (n) => String(n).padStart(2, '0');
+            document.getElementById('date').value =
+              `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+          }
+
+          if (ev.qrImage) {
+            document.getElementById('existing-qr').innerHTML = `
+              <div class="qr" style="border-top:1px solid var(--border)">
+                <img src="${imageUrl(ev.qrImage)}" alt="Current QR code" />
+                <div class="qr-meta">
+                  <div class="qr-label">Current QR code</div>
+                  <div class="qr-note">${ev.qrSource === 'uploaded'
+                    ? 'Uploaded by you. Upload a new file to replace it.'
+                    : 'Generated from the registration link.'}</div>
+                </div>
+              </div>`;
+          }
+        }).catch((err) => showNote(note, err.message));
+      }
+
+      /* ---------- submit ---------- */
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        clearNote(note);
+        submitBtn.disabled = true;
+
+        const fd = new FormData();
+        fd.append('title', document.getElementById('title').value.trim());
+        fd.append('description', document.getElementById('description').value.trim());
+        fd.append('category', document.getElementById('category').value);
+        fd.append('date', new Date(document.getElementById('date').value).toISOString());
+        fd.append('location', document.getElementById('location').value.trim());
+        fd.append('registrationUrl', document.getElementById('registrationUrl').value.trim());
+
+        const inst = document.getElementById('institution').value;
+        if (inst) fd.append('institution', inst);
+
+        const cover = document.getElementById('image').files[0];
+        if (cover) fd.append('image', cover);
+
+        const qr = document.getElementById('qrImage').files[0];
+        if (qr) fd.append('qrImage', qr);
+
+        try {
+          if (isEdit) {
+            await api.updateEvent(eventId, fd);
+            showNote(note, 'Changes saved.', 'ok');
+          } else {
+            await api.createEvent(fd);
+            showNote(note, 'Event published.', 'ok');
+            form.reset();
+            document.getElementById('registrationUrl').value = '';
+          }
+          setTimeout(() => { window.location.href = 'events.html'; }, 700);
+        } catch (err) {
+          showNote(note, err.message);
+          submitBtn.disabled = false;
+        }
+      });
+    }
+  </script>
+</body>
+</html>

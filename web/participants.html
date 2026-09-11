@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Participants &middot; Campus Events</title>
+  <link rel="icon" href="assets/logo.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="assets/styles.css" />
+  <script>
+    document.documentElement.setAttribute(
+      'data-theme', localStorage.getItem('ce_theme') === 'dark' ? 'dark' : 'light');
+  </script>
+</head>
+<body>
+  <header class="topbar" id="topbar"></header>
+
+  <main class="page" style="max-width:760px">
+    <div class="page-head">
+      <div>
+        <h1 id="heading">Participants</h1>
+        <p class="sub" id="subtitle">People registered for this event.</p>
+      </div>
+      <a class="btn btn-secondary" href="events.html">Back to events</a>
+    </div>
+
+    <div id="note"></div>
+    <div id="content"></div>
+  </main>
+
+  <script src="assets/api.js"></script>
+  <script src="assets/app.js"></script>
+  <script>
+    if (requireAuth()) {
+      renderNav('');
+
+      const note = document.getElementById('note');
+      const content = document.getElementById('content');
+      const eventId = new URLSearchParams(location.search).get('id');
+
+      if (!eventId) {
+        content.innerHTML = '<div class="empty">No event selected.</div>';
+      } else {
+        content.innerHTML = '<p class="muted small">Loading&hellip;</p>';
+
+        Promise.all([api.getEvent(eventId), api.participants(eventId)])
+          .then(([event, people]) => {
+            document.getElementById('heading').textContent = event.title;
+            document.getElementById('subtitle').textContent =
+              `${people.length} ${people.length === 1 ? 'person has' : 'people have'} registered.`;
+
+            content.innerHTML = people.length
+              ? `<div class="card"><div class="table-wrap">
+                   <table>
+                     <thead><tr><th>Name</th><th>Email</th></tr></thead>
+                     <tbody>${people.map((p) => `
+                       <tr><td>${escapeHtml(p.name)}</td><td>${escapeHtml(p.email)}</td></tr>`).join('')}
+                     </tbody>
+                   </table>
+                 </div></div>`
+              : '<div class="empty">No registrations yet.</div>';
+          })
+          .catch((err) => {
+            content.innerHTML = '';
+            showNote(note, err.message);
+          });
+      }
+    }
+  </script>
+</body>
+</html>

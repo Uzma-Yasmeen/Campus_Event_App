@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Sign in &middot; Campus Events</title>
+  <link rel="icon" href="assets/logo.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="assets/styles.css" />
+  <script>
+    document.documentElement.setAttribute(
+      'data-theme', localStorage.getItem('ce_theme') === 'dark' ? 'dark' : 'light');
+  </script>
+</head>
+<body>
+  <div class="auth-wrap">
+    <div class="auth-card">
+      <div class="auth-head">
+        <span class="auth-mark">
+          <svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true" focusable="false">
+            <rect x="2.5" y="4.5" width="19" height="17" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.8"/>
+            <path d="M2.5 9.5 h19" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+            <path d="M7.5 2.5 v4 M16.5 2.5 v4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+            <circle cx="12" cy="15.5" r="2.25" fill="currentColor"/>
+          </svg>
+        </span>
+        <h1>Campus Events</h1>
+        <p class="sub">Sign in to browse and register for events at your institution.</p>
+      </div>
+
+      <div class="card">
+        <div class="tabs">
+          <button class="tab active" data-tab="login" type="button">Sign in</button>
+          <button class="tab" data-tab="register" type="button">Create account</button>
+        </div>
+
+        <div id="note"></div>
+
+        <form id="login-form">
+          <div class="field">
+            <label for="login-email">Email</label>
+            <input id="login-email" type="email" autocomplete="email" required />
+          </div>
+          <div class="field">
+            <label for="login-password">Password</label>
+            <input id="login-password" type="password" autocomplete="current-password" required />
+          </div>
+          <button class="btn-block" type="submit">Sign in</button>
+        </form>
+
+        <form id="register-form" hidden>
+          <div class="field">
+            <label for="reg-name">Full name</label>
+            <input id="reg-name" type="text" autocomplete="name" required />
+          </div>
+          <div class="field">
+            <label for="reg-email">Email</label>
+            <input id="reg-email" type="email" autocomplete="email" required />
+          </div>
+          <div class="field">
+            <label for="reg-password">Password</label>
+            <input id="reg-password" type="password" autocomplete="new-password" minlength="6" required />
+            <p class="small muted" style="margin:5px 0 0">At least 6 characters.</p>
+          </div>
+          <div class="row">
+            <div class="field">
+              <label for="reg-role">I am a</label>
+              <select id="reg-role">
+                <option value="student">Student</option>
+                <option value="organizer">Organizer</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="reg-institution">Institution</label>
+              <select id="reg-institution"><option value="">Loading&hellip;</option></select>
+              <input id="reg-institution-name" type="text" placeholder="Name of your institution" hidden />
+              <p class="small" style="margin:5px 0 0">
+                <a href="#" id="toggle-institution">Not listed? Add it</a>
+              </p>
+            </div>
+          </div>
+          <button class="btn-block" type="submit">Create account</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script src="assets/api.js"></script>
+  <script src="assets/app.js"></script>
+  <script>
+    const note = document.getElementById('note');
+    const loginForm = document.getElementById('login-form');
+    const registerForm = document.getElementById('register-form');
+
+    if (Auth.token) window.location.href = 'events.html';
+
+    document.querySelectorAll('.tab').forEach((tab) => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.tab').forEach((t) => t.classList.remove('active'));
+        tab.classList.add('active');
+        const isLogin = tab.dataset.tab === 'login';
+        loginForm.hidden = !isLogin;
+        registerForm.hidden = isLogin;
+        clearNote(note);
+      });
+    });
+
+    // Populate the institution picker from the API.
+    api.institutions()
+      .then((list) => {
+        document.getElementById('reg-institution').innerHTML =
+          '<option value="">Not specified</option>' +
+          list.map((i) => `<option value="${i._id}">${escapeHtml(i.name)}</option>`).join('');
+      })
+      .catch(() => {
+        document.getElementById('reg-institution').innerHTML = '<option value="">Unavailable</option>';
+      });
+
+    // Let a new user name an institution that is not in the directory yet.
+    let customInstitution = false;
+    const instSelect = document.getElementById('reg-institution');
+    const instInput = document.getElementById('reg-institution-name');
+    document.getElementById('toggle-institution').addEventListener('click', (e) => {
+      e.preventDefault();
+      customInstitution = !customInstitution;
+      instSelect.hidden = customInstitution;
+      instInput.hidden = !customInstitution;
+      e.target.textContent = customInstitution ? 'Choose from the list instead' : 'Not listed? Add it';
+      if (customInstitution) instInput.focus();
+    });
+
+    loginForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      clearNote(note);
+      const btn = loginForm.querySelector('button');
+      btn.disabled = true;
+      try {
+        const data = await api.login({
+          email: document.getElementById('login-email').value.trim(),
+          password: document.getElementById('login-password').value
+        });
+        Auth.save(data.token, data.user);
+        window.location.href = 'events.html';
+      } catch (err) {
+        showNote(note, err.message);
+        btn.disabled = false;
+      }
+    });
+
+    registerForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      clearNote(note);
+      const btn = registerForm.querySelector('button');
+      btn.disabled = true;
+      try {
+        const data = await api.register({
+          name: document.getElementById('reg-name').value.trim(),
+          email: document.getElementById('reg-email').value.trim(),
+          password: document.getElementById('reg-password').value,
+          role: document.getElementById('reg-role').value,
+          institution: customInstitution ? null : (instSelect.value || null),
+          institutionName: customInstitution ? instInput.value.trim() : null
+        });
+        Auth.save(data.token, data.user);
+        window.location.href = 'events.html';
+      } catch (err) {
+        showNote(note, err.message);
+        btn.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>
