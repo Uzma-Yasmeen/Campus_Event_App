@@ -145,17 +145,29 @@ loading `assets/api.js`:
 cd mobile
 npm install
 npm start                   # opens the Expo developer tools
+npm run web                 # or run it straight in a browser
 ```
 
-Point the app at your machine's API. A phone cannot reach `localhost` — that resolves to
-the phone itself — so use your computer's LAN address. Edit `expo.extra.apiBaseUrl` in
-[`mobile/app.json`](mobile/app.json):
+The app picks a sensible API address for each target on its own:
 
-| Target | Value |
+| Target | Resolved automatically |
 |---|---|
 | Android emulator | `http://10.0.2.2:5000/api` |
-| iOS simulator | `http://localhost:5000/api` |
-| Physical device | `http://<your-computer-ip>:5000/api` |
+| iOS simulator / web | `http://localhost:5000/api` |
+
+A **physical device** is the exception. It cannot reach `localhost` — that resolves to the
+phone itself — so point it at your computer's LAN address by adding an `extra` block to
+[`mobile/app.json`](mobile/app.json):
+
+```json
+{
+  "expo": {
+    "extra": { "apiBaseUrl": "http://192.168.1.42:5000/api" }
+  }
+}
+```
+
+Both machines must be on the same network, and the backend must be reachable from it.
 
 ---
 
@@ -284,20 +296,39 @@ the registration link changes. Only `http` and `https` links are accepted.
 
 ![Responsive layout](docs/screenshots/responsive.png)
 
+**Mobile app** — event list and event detail with its QR code
+
+<p>
+  <img src="docs/screenshots/mobile-events.png" alt="Mobile event list" width="290" />
+  <img src="docs/screenshots/mobile-event-details.png" alt="Mobile event detail" width="290" />
+</p>
+
 ---
 
 ## Project status
 
-The backend and web client are complete and were verified end to end against a live
-MongoDB instance — registration, login, role enforcement, event CRUD, QR generation and
-decoding, participant lists, and search.
+All three parts have been run against a live MongoDB instance and verified end to end:
+registration, login, role enforcement, event CRUD, QR generation and decoding, participant
+lists, and search. Role behaviour was checked with three accounts — a participant, an
+organiser who owns no events, and an event owner — confirming that edit, delete and
+participant controls appear only for the owner, and that the API returns `403` when those
+endpoints are called directly by anyone else.
 
-The mobile app is feature-complete against the same API and passes static checks, but it
-has not yet been run on a physical device or emulator; expect to smooth over the usual
-platform details on first launch.
+The mobile app was built with Metro and driven through sign-in, category filtering, event
+detail and registration. It has been exercised on the web target and in a phone-sized
+viewport, but not yet on physical Android or iOS hardware — the remaining risk there is
+native module behaviour (the image picker in particular), not application logic.
 
-Not yet built: server-side pagination, email notifications, and automated tests. These
-are the natural next steps rather than known defects.
+Known gaps, in rough priority order:
+
+- The mobile app is light-theme only; the web client has a light/dark toggle
+- Mobile filters by category but has no free-text search, which the web client does have
+- The notification preference is stored but nothing sends notifications yet
+- No automated test suite
+- No pagination — every event is loaded at once, which is fine at this scale but will not
+  stay that way
+- Before any public deployment: restrict CORS to a known origin, add rate limiting to the
+  auth routes, replace `JWT_SECRET`, and move uploads off local disk
 
 ---
 

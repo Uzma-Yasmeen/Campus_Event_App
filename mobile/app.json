@@ -9,13 +9,14 @@
       "resizeMode": "contain",
       "backgroundColor": "#f7f7f5"
     },
-    "assetBundlePatterns": ["**/*"],
-    "ios": { "supportsTablet": true },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true
+    },
     "android": {
       "package": "com.campusevents.mobile"
-    },
-    "extra": {
-      "apiBaseUrl": "http://10.0.2.2:5000/api"
     }
   }
 }
