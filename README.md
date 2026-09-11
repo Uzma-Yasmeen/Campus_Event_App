@@ -49,10 +49,10 @@ client, and a React Native mobile app.
 - QR codes rebuild themselves if the host wipes the filesystem
 
 **QR codes**
-- Every event gets a QR code automatically
-- Paste a Google Form (or any http/https link) and the code is generated pointing at it
-- Already have a code? Upload it instead and it takes priority
-- No link at all? The code encodes the event's own details, so a scan still shows something useful
+- Paste a Google Form (or any http/https link) and a code is generated pointing at it
+- Already have a code printed on posters? Upload it instead and it takes priority
+- An event with no registration link gets no QR, so every code on screen does something
+  when scanned
 
 ---
 
@@ -319,17 +319,23 @@ assigns each unscoped event to its organiser's campus.
 
 ## How QR codes work
 
-Every event has a QR code. The source is resolved in this order:
+A QR code is resolved in this order:
 
 1. **An uploaded code.** If the organiser uploads a `qrImage`, that file is used as-is.
    Useful when a code was printed on posters before the event was added here.
 2. **A generated code.** If a `registrationUrl` is supplied — typically a Google Form —
    a PNG is rendered server-side pointing at that link.
-3. **A details fallback.** With neither of the above, the code encodes the event's title,
-   category, time and venue, so scanning still returns something meaningful.
+3. **Otherwise, no QR code.** The event simply shows no code.
 
 Generated codes are written to `backend/uploads/qr/event-<id>.png` and regenerated when
-the registration link changes. Only `http` and `https` links are accepted.
+the registration link changes. Only `http` and `https` links are accepted, so a code can
+never encode something a scanner will not open.
+
+> An earlier version encoded the event's title, date and venue as plain text when no link
+> was given, so that every event had a code. It was removed: a phone camera scanning plain
+> text shows the raw string with nothing to tap, which made the feature look functional
+> while doing nothing. A QR code is now only shown when scanning it will actually take
+> someone somewhere.
 
 ---
 

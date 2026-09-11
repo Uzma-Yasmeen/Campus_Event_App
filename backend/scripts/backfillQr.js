@@ -5,28 +5,29 @@ require('dotenv').config();
 const mongoose = require('mongoose');
 const connectDB = require('../config/db');
 const Event = require('../models/Event');
-const { generateQr, isValidUrl, eventSummary } = require('../utils/qr');
+const { generateQr, isValidUrl } = require('../utils/qr');
 
 (async () => {
   try {
     await connectDB(process.env.MONGO_URI);
 
+    // Only events with a registration link get a code; one without a link has
+    // nothing worth encoding.
     const events = await Event.find({
-      $or: [{ qrImage: '' }, { qrImage: { $exists: false } }]
+      $or: [{ qrImage: '' }, { qrImage: { $exists: false } }],
+      registrationUrl: { $nin: ['', null] }
     });
 
     if (!events.length) {
-      console.log('Every event already has a QR code.');
+      console.log('No events are missing a QR code.');
       await mongoose.disconnect();
       process.exit(0);
     }
 
     for (const event of events) {
-      const payload = (event.registrationUrl && isValidUrl(event.registrationUrl))
-        ? event.registrationUrl
-        : eventSummary(event);
+      if (!isValidUrl(event.registrationUrl)) continue;
 
-      event.qrImage = await generateQr(event._id, payload);
+      event.qrImage = await generateQr(event._id, event.registrationUrl);
       event.qrSource = 'generated';
       await event.save();
       console.log(`QR created for "${event.title}"`);
