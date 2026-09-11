@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Events &middot; Campus Events</title>
+  <link rel="icon" href="assets/logo.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="assets/styles.css" />
+  <script>
+    // Set the theme before first paint to avoid a flash of the wrong theme.
+    document.documentElement.setAttribute(
+      'data-theme', localStorage.getItem('ce_theme') === 'dark' ? 'dark' : 'light');
+  </script>
+</head>
+<body>
+  <header class="topbar" id="topbar"></header>
+
+  <main class="page">
+    <div class="page-head">
+      <div>
+        <h1>Upcoming events</h1>
+        <p class="sub" id="subtitle">Events open for registration.</p>
+      </div>
+      <a class="btn" href="create-event.html" id="create-link" hidden>Create new event</a>
+    </div>
+
+    <div class="toolbar">
+      <div class="segment">
+        <button type="button" class="active" data-tab="all">All events</button>
+        <button type="button" data-tab="registered">Registered</button>
+      </div>
+
+      <select id="category" style="max-width:190px">
+        <option value="">All categories</option>
+      </select>
+
+      <input class="search" id="search" type="search" placeholder="Search events by title, category or venue" />
+    </div>
+
+    <div id="note"></div>
+    <div id="list" class="grid"></div>
+  </main>
+
+  <script src="assets/api.js"></script>
+  <script src="assets/app.js"></script>
+  <script>
+    if (requireAuth()) {
+      renderNav('events.html');
+
+      const list = document.getElementById('list');
+      const note = document.getElementById('note');
+      const search = document.getElementById('search');
+      const categorySelect = document.getElementById('category');
+      const subtitle = document.getElementById('subtitle');
+
+      let tab = 'all';
+      let events = [];
+
+      if (Auth.isOrganizer()) document.getElementById('create-link').hidden = false;
+
+      subtitle.textContent = Auth.isOrganizer()
+        ? 'Every event on the platform. You can edit or remove the ones you created.'
+        : 'Browse everything on offer and register for what interests you.';
+
+      /* ---------- icons ---------- */
+      const icon = {
+        pin: '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 21s7-5.5 7-11a7 7 0 1 0-14 0c0 5.5 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>',
+        clock: '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2" stroke-linecap="round"/></svg>',
+        user: '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-3.3 3.1-5.5 7-5.5s7 2.2 7 5.5" stroke-linecap="round"/></svg>',
+        tag: '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3 12V5a2 2 0 0 1 2-2h7l9 9-9 9z" stroke-linejoin="round"/><circle cx="7.5" cy="7.5" r="1.3" fill="currentColor" stroke="none"/></svg>'
+      };
+
+      /* ---------- filters ---------- */
+      api.categories()
+        .then((cats) => {
+          categorySelect.innerHTML = '<option value="">All categories</option>' +
+            cats.map((c) => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
+        })
+        .catch(() => {});
+
+      let debounce;
+      search.addEventListener('input', () => {
+        clearTimeout(debounce);
+        debounce = setTimeout(load, 250);
+      });
+      categorySelect.addEventListener('change', load);
+
+      document.querySelectorAll('.segment button').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.segment button').forEach((b) => b.classList.remove('active'));
+          btn.classList.add('active');
+          tab = btn.dataset.tab;
+          render();
+        });
+      });
+
+      /* ---------- data ---------- */
+      async function load() {
+        list.innerHTML = '<p class="muted small">Loading events&hellip;</p>';
+        clearNote(note);
+        try {
+          events = await api.listEvents({
+            category: categorySelect.value,
+            q: search.value.trim()
+          });
+          render();
+        } catch (err) {
+          list.innerHTML = '';
+          showNote(note, err.message);
+        }
+      }
+
+      function render() {
+        const mine = (ev) => (ev.participants || []).some((p) => String(p) === String(Auth.user.id));
+        const shown = tab === 'registered' ? events.filter(mine) : events;
+
+        if (!shown.length) {
+          list.innerHTML = `<div class="empty" style="grid-column:1/-1">${
+            tab === 'registered'
+              ? 'You have not registered for any events yet.'
+              : 'No events match this search.'
+          }</div>`;
+          return;
+        }
+
+        list.innerHTML = shown.map(card).join('');
+        bind();
+      }
+
+      function card(ev) {
+        const organizerId = String(ev.organizer && (ev.organizer._id || ev.organizer));
+        const isOwner = Auth.isOrganizer() && organizerId === String(Auth.user.id);
+        const joined = (ev.participants || []).some((p) => String(p) === String(Auth.user.id));
+        const formLink = safeUrl(ev.registrationUrl);
+
+        const qr = ev.qrImage ? `
+          <div class="qr">
+            <img src="${imageUrl(ev.qrImage)}" alt="QR code to register for ${escapeHtml(ev.title)}" />
+            <div class="qr-meta">
+              <div class="qr-label">Scan to register</div>
+              <div class="qr-note">
+                ${ev.qrSource === 'uploaded'
+                  ? 'Organiser-supplied code.'
+                  : (formLink
+                      ? `Opens <a href="${escapeHtml(formLink)}" target="_blank" rel="noopener noreferrer">the registration form</a>.`
+                      : 'Shows the event details.')}
+              </div>
+            </div>
+          </div>` : '';
+
+        return `
+          <article class="event">
+            ${ev.image ? `<img class="event-img" src="${imageUrl(ev.image)}" alt="" />` : ''}
+            <div class="event-body">
+              <div class="event-head">
+                <h2 class="event-title">${escapeHtml(ev.title)}</h2>
+                <span class="tag">${escapeHtml(ev.category || 'Other')}</span>
+              </div>
+
+              <div class="stack" style="margin-bottom:10px">
+                ${ev.location ? `<span class="event-row">${icon.pin}${escapeHtml(ev.location)}</span>` : ''}
+                <span class="event-row">${icon.clock}${formatDate(ev.date)}</span>
+                <span class="event-row">${icon.user}${escapeHtml((ev.organizer && ev.organizer.name) || 'Unknown')}</span>
+                ${ev.institution && ev.institution.name
+                  ? `<span class="event-row">${icon.tag}${escapeHtml(ev.institution.name)}</span>` : ''}
+              </div>
+
+              <p class="event-desc">${escapeHtml(ev.description || 'No description provided.')}</p>
+
+              <div class="event-foot">
+                <span class="tag">${(ev.participants || []).length} registered</span>
+              </div>
+
+              ${qr}
+
+              <div class="actions">
+                <button data-id="${ev._id}" class="register"${joined ? ' disabled' : ''}>
+                  ${joined ? 'Registered' : 'Register'}
+                </button>
+                ${formLink
+                  ? `<a class="btn btn-secondary" href="${escapeHtml(formLink)}" target="_blank" rel="noopener noreferrer">Registration form</a>`
+                  : ''}
+                ${isOwner ? `
+                  <a class="btn btn-secondary" href="create-event.html?id=${ev._id}">Edit</a>
+                  <a class="btn btn-secondary" href="participants.html?id=${ev._id}">Participants</a>
+                  <button class="btn-danger delete" data-id="${ev._id}">Delete</button>` : ''}
+              </div>
+            </div>
+          </article>`;
+      }
+
+      function bind() {
+        document.querySelectorAll('button.register').forEach((btn) => {
+          btn.addEventListener('click', async () => {
+            btn.disabled = true;
+            try {
+              await api.registerForEvent(btn.dataset.id);
+              btn.textContent = 'Registered';
+              const ev = events.find((e) => e._id === btn.dataset.id);
+              if (ev) ev.participants = [...(ev.participants || []), Auth.user.id];
+              showNote(note, 'You are registered for this event.', 'ok');
+            } catch (err) {
+              showNote(note, err.message);
+              btn.disabled = false;
+            }
+          });
+        });
+
+        document.querySelectorAll('button.delete').forEach((btn) => {
+          btn.addEventListener('click', async () => {
+            if (!confirm('Delete this event? This cannot be undone.')) return;
+            btn.disabled = true;
+            try {
+              await api.deleteEvent(btn.dataset.id);
+              events = events.filter((e) => e._id !== btn.dataset.id);
+              render();
+              showNote(note, 'Event deleted.', 'ok');
+            } catch (err) {
+              showNote(note, err.message);
+              btn.disabled = false;
+            }
+          });
+        });
+      }
+
+      load();
+    }
+  </script>
+</body>
+</html>

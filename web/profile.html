@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Profile &middot; Campus Events</title>
+  <link rel="icon" href="assets/logo.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="assets/styles.css" />
+  <script>
+    document.documentElement.setAttribute(
+      'data-theme', localStorage.getItem('ce_theme') === 'dark' ? 'dark' : 'light');
+  </script>
+</head>
+<body>
+  <header class="topbar" id="topbar"></header>
+
+  <main class="page" style="max-width:640px">
+    <div class="page-head">
+      <div>
+        <h1>Profile</h1>
+        <p class="sub">Manage your account details and preferences.</p>
+      </div>
+    </div>
+
+    <div id="note"></div>
+
+    <div class="card">
+      <h2>Account details</h2>
+
+      <div class="avatar-row">
+        <span id="avatar-preview"></span>
+        <div>
+          <input id="avatar-file" type="file" accept="image/jpeg,image/png,image/webp" hidden />
+          <button type="button" class="btn-secondary" id="avatar-btn">Change picture</button>
+          <p class="small muted" style="margin:6px 0 0">JPEG, PNG or WebP. Maximum 5 MB.</p>
+        </div>
+      </div>
+
+      <form id="profile-form">
+        <div class="field">
+          <label for="name">Full name</label>
+          <input id="name" type="text" required />
+        </div>
+        <div class="field">
+          <label for="email">Email</label>
+          <input id="email" type="email" required />
+        </div>
+        <div class="field">
+          <label for="institution">Institution</label>
+          <select id="institution"><option value="">Loading&hellip;</option></select>
+          <p class="small" style="margin:5px 0 0">
+            <a href="#" id="add-institution">Not listed? Add it</a>
+          </p>
+        </div>
+        <button type="submit">Save changes</button>
+      </form>
+    </div>
+
+    <div class="card">
+      <h2>Change password</h2>
+      <form id="password-form">
+        <div class="field">
+          <label for="old-password">Current password</label>
+          <input id="old-password" type="password" autocomplete="current-password" required />
+        </div>
+        <div class="field">
+          <label for="new-password">New password</label>
+          <input id="new-password" type="password" autocomplete="new-password" minlength="6" required />
+        </div>
+        <button type="submit">Update password</button>
+      </form>
+    </div>
+
+    <div class="card">
+      <h2>Preferences</h2>
+      <form id="settings-form">
+        <div class="field">
+          <label for="theme">Theme</label>
+          <select id="theme">
+            <option value="light">Light</option>
+            <option value="dark">Dark</option>
+          </select>
+        </div>
+        <div class="field">
+          <label style="display:flex;align-items:center;gap:8px;font-weight:400">
+            <input id="notifications" type="checkbox" style="width:auto" />
+            Receive event notifications
+          </label>
+        </div>
+        <button type="submit">Save preferences</button>
+      </form>
+    </div>
+  </main>
+
+  <script src="assets/api.js"></script>
+  <script src="assets/app.js"></script>
+  <script>
+    if (requireAuth()) {
+      renderNav('profile.html');
+      const note = document.getElementById('note');
+
+      Promise.all([api.profile(), api.institutions().catch(() => [])])
+        .then(([me, institutions]) => {
+          document.getElementById('name').value = me.name || '';
+          document.getElementById('email').value = me.email || '';
+          document.getElementById('theme').value = Theme.get();
+          document.getElementById('notifications').checked = me.notifications !== false;
+
+          const sel = document.getElementById('institution');
+          sel.innerHTML = '<option value="">Not specified</option>' +
+            institutions.map((i) => `<option value="${i._id}">${escapeHtml(i.name)}</option>`).join('');
+          if (me.institution) sel.value = me.institution._id || me.institution;
+        })
+        .catch((err) => showNote(note, err.message));
+
+
+      // Adding a missing institution without leaving the page.
+      document.getElementById('add-institution').addEventListener('click', async (e) => {
+        e.preventDefault();
+        const name = prompt('Name of the institution to add:');
+        if (!name || !name.trim()) return;
+        try {
+          const created = await api.createInstitution({ name: name.trim() });
+          const sel = document.getElementById('institution');
+          sel.insertAdjacentHTML('beforeend', `<option value="${created._id}">${escapeHtml(created.name)}</option>`);
+          sel.value = created._id;
+          showNote(note, `Added ${created.name}.`, 'ok');
+        } catch (err) {
+          showNote(note, err.message);
+        }
+      });
+
+
+      // --- profile picture ---
+      const avatarPreview = document.getElementById('avatar-preview');
+      const avatarFile = document.getElementById('avatar-file');
+
+      const paintAvatar = () => {
+        avatarPreview.innerHTML = avatarMarkup(Auth.user, 'avatar-lg');
+      };
+      paintAvatar();
+
+      document.getElementById('avatar-btn').addEventListener('click', () => avatarFile.click());
+
+      avatarFile.addEventListener('change', async () => {
+        const file = avatarFile.files[0];
+        if (!file) return;
+        clearNote(note);
+        try {
+          const fd = new FormData();
+          fd.append('avatar', file);
+          const res = await api.uploadAvatar(fd);
+          Auth.save(Auth.token, { ...Auth.user, avatar: res.avatar });
+          paintAvatar();
+          renderNav('profile.html');
+          showNote(note, 'Profile picture updated.', 'ok');
+        } catch (err) {
+          showNote(note, err.message);
+        } finally {
+          avatarFile.value = '';
+        }
+      });
+
+      document.getElementById('profile-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        clearNote(note);
+        try {
+          const updated = await api.updateProfile({
+            name: document.getElementById('name').value.trim(),
+            email: document.getElementById('email').value.trim(),
+            institution: document.getElementById('institution').value || null
+          });
+          Auth.save(Auth.token, { ...Auth.user, name: updated.name, email: updated.email });
+          showNote(note, 'Profile updated.', 'ok');
+          renderNav('profile.html');
+        } catch (err) { showNote(note, err.message); }
+      });
+
+      document.getElementById('password-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        clearNote(note);
+        try {
+          await api.changePassword({
+            oldPassword: document.getElementById('old-password').value,
+            newPassword: document.getElementById('new-password').value
+          });
+          e.target.reset();
+          showNote(note, 'Password updated.', 'ok');
+        } catch (err) { showNote(note, err.message); }
+      });
+
+      document.getElementById('settings-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        clearNote(note);
+        try {
+          const chosen = document.getElementById('theme').value;
+          await api.updateSettings({
+            theme: chosen,
+            notifications: document.getElementById('notifications').checked
+          });
+          Theme.apply(chosen);
+          renderNav('profile.html');
+          showNote(note, 'Preferences saved.', 'ok');
+        } catch (err) { showNote(note, err.message); }
+      });
+    }
+  </script>
+</body>
+</html>
