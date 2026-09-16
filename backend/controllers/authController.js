@@ -10,8 +10,7 @@ const publicUser = (user) => ({
   role: user.role,
   institution: user.institution,
   avatar: user.avatar,
-  theme: user.theme,
-  notifications: user.notifications
+  theme: user.theme
 });
 
 /** Resolve the institution reference so clients can show its name. */

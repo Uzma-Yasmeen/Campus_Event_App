@@ -12,7 +12,6 @@ exports.getProfile = async (req, res) => {
       role: user.role,
       institution: user.institution,
       avatar: user.avatar,
-      notifications: user.notifications,
       theme: user.theme
     });
   } catch (err) {
@@ -67,17 +66,15 @@ exports.changePassword = async (req, res) => {
   }
 };
 
-// PUT /users/settings (toggle notifications/theme)
+// PUT /users/settings (theme preference)
 exports.updateSettings = async (req, res) => {
   try {
-    const { notifications, theme } = req.body;
+    const { theme } = req.body;
     const updates = {};
-    if (typeof notifications === 'boolean') updates.notifications = notifications;
     if (theme === 'light' || theme === 'dark') updates.theme = theme;
 
     const user = await User.findByIdAndUpdate(req.user._id, updates, { new: true }).select('-password');
     res.json({
-      notifications: user.notifications,
       theme: user.theme
     });
   } catch (err) {
