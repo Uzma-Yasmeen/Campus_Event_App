@@ -38,3 +38,7 @@ Thumbs.db
 
 # Local dev server logs
 .local-run/
+
+# Test output
+coverage/
+.jest-cache/
