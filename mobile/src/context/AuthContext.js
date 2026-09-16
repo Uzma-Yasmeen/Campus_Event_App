@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
-import { api, storage, setUnauthorizedHandler } from '../api/client';
+import { api, storage, setUnauthorizedHandler, API_BASE } from '../api/client';
 
 const AuthContext = createContext(null);
 
@@ -12,6 +12,14 @@ export function AuthProvider({ children }) {
       setSession(saved);
       setLoading(false);
     });
+
+    // Wake the API while the launch screen is up.
+    //
+    // Free hosting tiers sleep when idle, and the next request pays 30-60
+    // seconds to start the service. Asking for /health on launch means that
+    // wait usually falls in the moment before anyone has typed anything,
+    // rather than on their sign-in. Fire and forget: nothing depends on it.
+    fetch(`${API_BASE}/health`).catch(() => {});
   }, []);
 
   const signOut = useCallback(async () => {
