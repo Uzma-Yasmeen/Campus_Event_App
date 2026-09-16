@@ -7,8 +7,8 @@
   --border-strong: #c9c8c3;
   --text: #1b1c1a;
   --muted: #6a6a65;
-  --ink: #16324f;
-  --ink-hover: #1d4268;
+  --ink: #01295a;
+  --ink-hover: #0a3d80;
   --on-ink: #ffffff;
   --hover: #f0efec;
   --subtle: #f3f2ef;
@@ -19,12 +19,12 @@
   --ok: #2f6b4f;
   --ok-bg: #f1f7f3;
   --ok-border: #c2d8cb;
-  --focus-ring: rgba(22, 50, 79, 0.10);
+  --focus-ring: rgba(1, 41, 90, 0.12);
   --shadow: 0 6px 20px rgba(20, 20, 18, 0.12);
-  --grid-line: rgba(22, 50, 79, 0.055);
-  --wash: rgba(22, 50, 79, 0.045);
-  --icon-bg: rgba(22, 50, 79, 0.055);
-  --icon-border: rgba(22, 50, 79, 0.14);
+  --grid-line: rgba(1, 41, 90, 0.055);
+  --wash: rgba(1, 41, 90, 0.05);
+  --icon-bg: rgba(1, 41, 90, 0.06);
+  --icon-border: rgba(1, 41, 90, 0.15);
   --bar-glass: rgba(255, 255, 255, 0.72);
   --radius: 4px;
 }
@@ -36,8 +36,8 @@
   --border-strong: #43464a;
   --text: #e8e8e4;
   --muted: #9d9e9b;
-  --ink: #8fb4d9;
-  --ink-hover: #a6c6e6;
+  --ink: #9ec5f5;
+  --ink-hover: #bcd8fb;
   --on-ink: #12212e;
   --hover: #2a2d30;
   --subtle: #26292c;
@@ -48,12 +48,12 @@
   --ok: #85c2a1;
   --ok-bg: #1e2724;
   --ok-border: #354a3c;
-  --focus-ring: rgba(143, 180, 217, 0.20);
+  --focus-ring: rgba(158, 197, 245, 0.22);
   --shadow: 0 6px 20px rgba(0, 0, 0, 0.45);
-  --grid-line: rgba(143, 180, 217, 0.055);
-  --wash: rgba(143, 180, 217, 0.05);
-  --icon-bg: rgba(143, 180, 217, 0.09);
-  --icon-border: rgba(143, 180, 217, 0.20);
+  --grid-line: rgba(158, 197, 245, 0.055);
+  --wash: rgba(158, 197, 245, 0.05);
+  --icon-bg: rgba(158, 197, 245, 0.09);
+  --icon-border: rgba(158, 197, 245, 0.20);
   --bar-glass: rgba(32, 34, 36, 0.68);
 }
 
@@ -627,6 +627,5 @@ th { font-weight: 600; font-size: 13px; color: var(--muted); }
 
 .logo-img { display: block; }
 
-/* A dark navy mark disappears against a dark ground, so lift it there.
-   Remove this rule if the logo already reads well in both themes. */
-[data-theme="dark"] .logo-img { filter: invert(1) brightness(1.9) saturate(0.6); }
+/* The mark is full colour with a transparent background, so it reads on both
+   grounds as-is. No dark-mode filter: inverting it would wreck the colours. */

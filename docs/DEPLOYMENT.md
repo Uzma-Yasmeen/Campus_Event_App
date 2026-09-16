@@ -31,16 +31,22 @@ Check each provider's current terms before signing up; free tiers change.
    rule will block the API.
 4. **Connect** → **Drivers** → copy the connection string. It looks like:
 
-   ```
-   mongodb+srv://<user>:<password>@cluster0.xxxxx.mongodb.net/?retryWrites=true&w=majority
-   ```
-
-   Replace `<user>` and `<password>`, and insert the database name before the
-   `?` so the data lands in the right place:
+   It arrives in this form:
 
    ```
-   mongodb+srv://campus:YOURPASSWORD@cluster0.xxxxx.mongodb.net/campus_events?retryWrites=true&w=majority
+   mongodb+srv://USERNAME:PASSWORD@CLUSTER.mongodb.net/?retryWrites=true&w=majority
    ```
+
+   Substitute your own username and password, and insert the database name
+   before the `?` so the data lands in the right place — the path segment
+   should read `/campus_events`:
+
+   ```
+   .../CLUSTER.mongodb.net/campus_events?retryWrites=true&w=majority
+   ```
+
+   Keep the finished string out of the repository. It belongs in Render's
+   environment variables and in your local `.env`, which is git-ignored.
 
    If the password contains `@`, `:`, `/` or `#`, percent-encode it
    (`@` → `%40`), otherwise the string will not parse.
