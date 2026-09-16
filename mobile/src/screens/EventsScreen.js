@@ -1,5 +1,5 @@
-import React, { useCallback, useState } from 'react';
-import { View, Text, FlatList, StyleSheet, RefreshControl, TouchableOpacity } from 'react-native';
+import React, { useCallback, useEffect, useState } from 'react';
+import { View, Text, TextInput, FlatList, StyleSheet, RefreshControl, TouchableOpacity } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { theme } from '../theme';
 import { api } from '../api/client';
@@ -10,13 +10,14 @@ export default function EventsScreen({ navigation }) {
   const [events, setEvents] = useState([]);
   const [categories, setCategories] = useState([]);
   const [filter, setFilter] = useState(null);
+  const [query, setQuery] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
 
-  const load = useCallback(async (category) => {
+  const load = useCallback(async (category, q) => {
     setError('');
     try {
-      const data = await api.listEvents(category ? { category } : {});
+      const data = await api.listEvents({ category: category || '', q: (q || '').trim() });
       setEvents(data);
     } catch (err) {
       setError(err.message);
@@ -28,13 +29,33 @@ export default function EventsScreen({ navigation }) {
 
   useFocusEffect(
     useCallback(() => {
-      load(filter);
+      load(filter, query);
       api.categories().then(setCategories).catch(() => {});
-    }, [filter, load])
+    }, [filter, query, load])
   );
+
+  // Wait for a pause in typing rather than calling the API on every keystroke.
+  useEffect(() => {
+    const timer = setTimeout(() => load(filter, query), 250);
+    return () => clearTimeout(timer);
+  }, [query, filter, load]);
 
   return (
     <View style={s.flex}>
+      <View style={s.searchWrap}>
+        <TextInput
+          style={s.search}
+          value={query}
+          onChangeText={setQuery}
+          placeholder="Search by title, category or venue"
+          placeholderTextColor={theme.colors.muted}
+          autoCapitalize="none"
+          autoCorrect={false}
+          returnKeyType="search"
+          clearButtonMode="while-editing"
+        />
+      </View>
+
       {categories.length > 0 && (
         <View style={s.filterBar}>
           <FlatList
@@ -75,6 +96,22 @@ export default function EventsScreen({ navigation }) {
 
 const s = StyleSheet.create({
   flex: { flex: 1, backgroundColor: theme.colors.bg },
+  searchWrap: {
+    backgroundColor: theme.colors.surface,
+    paddingHorizontal: 14,
+    paddingTop: 12,
+    paddingBottom: 10
+  },
+  search: {
+    borderWidth: 1,
+    borderColor: theme.colors.borderStrong,
+    borderRadius: theme.radius,
+    backgroundColor: theme.colors.bg,
+    paddingHorizontal: 11,
+    paddingVertical: 9,
+    fontSize: 15,
+    color: theme.colors.text
+  },
   filterBar: { borderBottomWidth: 1, borderBottomColor: theme.colors.border, backgroundColor: theme.colors.surface },
   filterContent: { paddingHorizontal: 14, paddingVertical: 10, gap: 8 },
   list: { padding: 14 },

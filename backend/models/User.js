@@ -7,7 +7,6 @@ const UserSchema = new mongoose.Schema({
   role: { type: String, enum: ['student', 'organizer'], default: 'student' },
   institution: { type: mongoose.Schema.Types.ObjectId, ref: 'Institution', default: null },
   avatar: { type: String, default: '' },
-  notifications: { type: Boolean, default: true },
   theme: { type: String, enum: ['light', 'dark'], default: 'light' }
 }, { timestamps: true });
 
