@@ -3,10 +3,6 @@
 Every route is prefixed with `/api`. Authenticated routes expect an
 `Authorization: Bearer <token>` header.
 
-
-All routes are prefixed with `/api`. Authenticated routes expect an
-`Authorization: Bearer <token>` header.
-
 ### Auth
 
 | Method | Endpoint | Access | Description |
