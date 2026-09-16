@@ -26,7 +26,7 @@ async function generateQr(eventId, payload) {
     errorCorrectionLevel: 'M',
     margin: 2,
     width: 512,
-    color: { dark: '#16324f', light: '#ffffff' }
+    color: { dark: '#01295a', light: '#ffffff' }
   });
 
   return `/uploads/qr/${filename}`;

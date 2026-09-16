@@ -1,8 +1,8 @@
 /* Shared page helpers: theme, nav rendering, guards, formatting. */
 
-/* The logo lives in one place: assets/logo.svg. Replace that file to change
+/* The logo lives in one place: assets/logo.png. Replace that file to change
    it across every page - any web image format works. */
-const LOGO_IMG = '<img src="assets/logo.svg" alt="" width="20" height="20" class="logo-img" />';
+const LOGO_IMG = '<img src="assets/logo.png" alt="" width="22" height="22" class="logo-img" />';
 
 const ICON_SUN = `<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true">
   <circle cx="12" cy="12" r="4"/>

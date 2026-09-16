@@ -6,6 +6,7 @@
     "orientation": "portrait",
     "userInterfaceStyle": "light",
     "splash": {
+      "image": "./assets/logo.png",
       "resizeMode": "contain",
       "backgroundColor": "#f7f7f5"
     },
@@ -16,7 +17,15 @@
       "supportsTablet": true
     },
     "android": {
-      "package": "com.campusevents.mobile"
+      "package": "com.campusevents.mobile",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/logo.png",
+        "backgroundColor": "#ffffff"
+      }
+    },
+    "icon": "./assets/icon.png",
+    "web": {
+      "favicon": "./assets/logo.png"
     }
   }
 }
