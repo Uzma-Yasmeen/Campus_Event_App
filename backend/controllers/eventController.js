@@ -12,10 +12,21 @@ function scopeOf(req) {
   return req.user.institution ? String(req.user.institution) : null;
 }
 
+/**
+ * The id of an event's institution, whether or not the query populated it.
+ * A populated reference is an object, and String() on one yields
+ * "[object Object]", which would never match a scope id.
+ */
+function institutionIdOf(event) {
+  const inst = event && event.institution;
+  if (!inst) return null;
+  return String(inst._id || inst);
+}
+
 /** True when the event belongs to the caller's institution. */
 function inScope(event, req) {
   const scope = scopeOf(req);
-  return !!scope && String(event.institution) === scope;
+  return !!scope && institutionIdOf(event) === scope;
 }
 
 /** Pull the first uploaded file for a given field name. */
