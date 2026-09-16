@@ -67,9 +67,13 @@ pointing at a commit.
 
 ## Commit messages
 
-A short summary line in the imperative — "Add campus scoping", not "Added" or "Adding" —
-then a blank line, then the reasoning. The summary says *what*; the body says *why*, and
-notes anything a reviewer would otherwise have to work out for themselves.
+One line, imperative mood, under about 72 characters — "Add campus scoping", not "Added"
+or "Adding".
+
+Add a body only where the reasoning would otherwise be lost, and keep it to a sentence or
+two. A subtle bug's cause earns one; a feature does not, because the diff already says
+what changed. Two commits in this history carry a body, and both explain a defect that
+would be hard to reconstruct later.
 
 ## Before merging anything
 
