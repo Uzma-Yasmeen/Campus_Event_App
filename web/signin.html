@@ -141,19 +141,32 @@
       if (customInstitution) instInput.focus();
     });
 
+    // A request that is taking a long time usually means the API is starting
+    // up on a free tier, not that anything is broken. Say so rather than
+    // leaving someone watching a dead button.
+    function explainIfSlow() {
+      const timer = setTimeout(() => {
+        showNote(note, 'Waking the server. Free hosting sleeps when idle, so this first request can take up to a minute.', 'ok');
+      }, 4000);
+      return () => clearTimeout(timer);
+    }
+
     loginForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       clearNote(note);
       const btn = loginForm.querySelector('button');
       btn.disabled = true;
+      const stopExplaining = explainIfSlow();
       try {
         const data = await api.login({
           email: document.getElementById('login-email').value.trim(),
           password: document.getElementById('login-password').value
         });
+        stopExplaining();
         Auth.save(data.token, data.user);
         window.location.href = 'events.html';
       } catch (err) {
+        stopExplaining();
         showNote(note, err.message);
         btn.disabled = false;
       }
@@ -174,6 +187,7 @@
       }
 
       btn.disabled = true;
+      const stopExplaining = explainIfSlow();
       try {
         const data = await api.register({
           name: document.getElementById('reg-name').value.trim(),
@@ -183,9 +197,11 @@
           institution: customInstitution ? null : (instSelect.value || null),
           institutionName: customInstitution ? instInput.value.trim() : null
         });
+        stopExplaining();
         Auth.save(data.token, data.user);
         window.location.href = 'events.html';
       } catch (err) {
+        stopExplaining();
         showNote(note, err.message);
         btn.disabled = false;
       }

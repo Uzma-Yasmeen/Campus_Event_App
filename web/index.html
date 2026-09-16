@@ -244,6 +244,23 @@
 <script src="assets/api.js"></script>
 <script src="assets/app.js"></script>
 <script>
+  // Wake the API while the visitor reads.
+  //
+  // Free hosting tiers put a service to sleep after a spell without traffic,
+  // and the next request pays 30-60 seconds to start it again. The landing
+  // page is static, so it loads regardless - but the first click through to
+  // the app would wear that wait. Asking for /api/health on load starts the
+  // service now, so it is usually up by the time anyone clicks.
+  //
+  // Deliberately fire-and-forget: nothing on this page depends on it, and a
+  // failure here must never surface to the visitor.
+  (function () {
+    try {
+      fetch(`${window.CAMPUS_API_BASE}/health`, { mode: 'cors', cache: 'no-store' })
+        .catch(() => {});
+    } catch { /* nothing to do */ }
+  })();
+
   // Signed-in visitors go straight to the app.
   if (Auth.token) window.location.replace('events.html');
 
