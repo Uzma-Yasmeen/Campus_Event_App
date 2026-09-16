@@ -13,10 +13,22 @@ Check each provider's current terms before signing up; free tiers change.
 
 > **The one catch worth knowing.** Render's free tier puts a service to sleep
 > after about 15 minutes without traffic, and the next request has to wait
-> roughly 30–60 seconds while it wakes. Everything works, it is just slow on
-> the first hit. If you are sending the link to someone, a short note on the
-> page — "hosted on a free tier, the first load may take a moment" — saves any
-> confusion.
+> roughly 30–60 seconds while it wakes.
+>
+> This matters less than it sounds, and the clients already handle it:
+>
+> - **Opening the site is never slow.** The landing page is static files on
+>   Netlify, so it loads whether or not the API is awake.
+> - **The API is woken while the visitor reads.** The landing page and the
+>   mobile app both request `/api/health` on load, fire-and-forget. By the time
+>   anyone clicks through — usually ten to thirty seconds of reading — the
+>   service is up.
+> - **If someone clicks straight away**, sign-in and sign-up explain the wait
+>   after four seconds rather than leaving a dead button.
+>
+> Keeping the service permanently awake with a scheduled ping is possible, but
+> it spends your free instance hours to do it and is not what the tier is for.
+> If you need guaranteed always-on, a paid instance is the honest answer.
 
 ---
 
