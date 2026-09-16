@@ -98,7 +98,7 @@ a { color: var(--ink); }
 
 .brand {
   font-weight: 600;
-  font-size: 15px;
+  font-size: 15.5px;
   letter-spacing: -0.01em;
   text-decoration: none;
   color: var(--text);
@@ -629,3 +629,20 @@ th { font-weight: 600; font-size: 13px; color: var(--muted); }
 
 /* The mark is full colour with a transparent background, so it reads on both
    grounds as-is. No dark-mode filter: inverting it would wreck the colours. */
+
+/* ---------- back link ---------- */
+
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  color: var(--muted);
+  text-decoration: none;
+  margin-bottom: 18px;
+  padding: 4px 8px 4px 4px;
+  border-radius: var(--radius);
+  margin-left: -4px;
+}
+
+.back-link:hover { color: var(--text); background: var(--hover); }
