@@ -11,13 +11,25 @@ jobs:
     name: Backend tests
     runs-on: ubuntu-latest
 
+    # A real MongoDB, so the suite does not have to download one at runtime.
+    services:
+      mongo:
+        image: mongo:7
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd "mongosh --quiet --eval 'db.runCommand({ ping: 1 })'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+
     steps:
       - uses: actions/checkout@v4
 
       - name: Use Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 20.19.4
           cache: npm
           cache-dependency-path: backend/package-lock.json
 
@@ -27,8 +39,8 @@ jobs:
 
       - name: Run tests
         working-directory: backend
-        # The suite starts its own in-memory MongoDB, so no service container
-        # is needed here.
+        env:
+          MONGO_URI: mongodb://127.0.0.1:27017/campus_events_test
         run: npm test
 
   web:
