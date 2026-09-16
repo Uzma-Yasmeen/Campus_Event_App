@@ -24,6 +24,7 @@ client, and a React Native mobile app.
 - [How QR codes work](#how-qr-codes-work)
 - [Screenshots](#screenshots)
 - [Project status](#project-status)
+- [Contributing](#contributing)
 
 ---
 
@@ -148,15 +149,23 @@ If your API does not run on `http://localhost:5000/api`, change the one line in
 window.CAMPUS_API_BASE = 'https://api.example.com/api';
 ```
 
-### Changing the logo
+### Branding
 
-The mark lives in one file, [`web/assets/logo.svg`](web/assets/logo.svg). Replace it and
-it updates across the landing page, every in-app header, and the browser tab. Any web
-image format works — if you swap in a PNG, update the two `<img src>` references and the
-`<link rel="icon">` tags to match the new extension.
+The mark is one file per client, both cut from the same source:
 
-A dark mark is lifted in dark mode by a filter in `assets/styles.css`; if your logo
-already reads well on both grounds, delete that rule.
+| File | Used for |
+|---|---|
+| [`web/assets/logo.png`](web/assets/logo.png) | Landing page, in-app header, sign-in, favicon |
+| `mobile/assets/logo.png` | In-app mark, splash screen, Android adaptive icon |
+| `mobile/assets/icon.png` | App icon (1024px, as the stores require) |
+| `docs/brand/logo-source.png` | Full-resolution original, for re-exporting |
+
+Replace those and the mark updates everywhere. They are generated from the source with
+`sharp`; the web copy is deliberately small (256px, ~16 KB) because it renders at 22px.
+
+The accent colour `#01295a` is sampled from the logo, so buttons and the mark are exactly
+the same navy. It gives 14.3:1 contrast against white, comfortably past the WCAG AAA
+threshold of 7:1.
 
 ### 3. Mobile app
 
@@ -399,6 +408,15 @@ Known gaps, in rough priority order:
 - Uploaded images do not survive a restart on hosts with an ephemeral filesystem.
   Generated QR codes do, because they are rebuilt on demand. See
   [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for the options
+
+---
+
+## Contributing
+
+[CONTRIBUTING.md](CONTRIBUTING.md) covers the branching model, versioning and commit
+conventions used here. In short: `main` is always deployable and tagged, `develop` is the
+integration branch, and each change gets its own `feature/` branch merged with `--no-ff`
+so the history reads as a list of features.
 
 ---
 
