@@ -63,7 +63,7 @@
 
 .lp-hero {
   border-bottom: 1px solid var(--border);
-  padding-block: 86px;
+  padding-block: 96px;
   background: var(--surface);
   position: relative;
   overflow: hidden;
@@ -96,8 +96,8 @@
 
 .lp-hero-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 56px;
+  grid-template-columns: 0.92fr 1.08fr;
+  gap: 52px;
   align-items: center;
 }
 
@@ -110,20 +110,20 @@
 }
 
 .lp-title {
-  font-size: 40px;
-  line-height: 1.15;
-  letter-spacing: -0.022em;
+  font-size: 48px;
+  line-height: 1.08;
+  letter-spacing: -0.028em;
   font-weight: 600;
-  margin: 0 0 18px;
-  max-width: 20ch;
+  margin: 0 0 20px;
+  max-width: 19ch;
 }
 
 .lp-lead {
-  font-size: 16px;
-  line-height: 1.6;
+  font-size: 17px;
+  line-height: 1.62;
   color: var(--muted);
-  margin: 0 0 26px;
-  max-width: 46ch;
+  margin: 0 0 28px;
+  max-width: 44ch;
 }
 
 .lp-cta { display: flex; gap: 10px; flex-wrap: wrap; }
@@ -284,14 +284,14 @@
 /* ---------- narrow screens ---------- */
 
 @media (max-width: 900px) {
-  .lp-hero-grid { grid-template-columns: 1fr; gap: 40px; }
-  .lp-title { font-size: 32px; max-width: none; }
+  .lp-hero-grid { grid-template-columns: 1fr; gap: 44px; }
+  .lp-title { font-size: 36px; max-width: none; }
   .lp-nav { display: none; }
 }
 
 @media (max-width: 560px) {
   .lp-hero, .lp-section { padding-block: 48px; }
-  .lp-title { font-size: 27px; }
+  .lp-title { font-size: 29px; }
   .lp-bar-inner { gap: 12px; }
   .lp-bar-actions .btn-secondary { display: none; }
 }
@@ -341,4 +341,148 @@
    the glare off it in dark mode so it sits on the page instead of glowing. */
 [data-theme="dark"] .lp-shot img {
   filter: brightness(0.88) contrast(1.02);
+}
+
+/* ---------------------------------------------------------------------------
+   Hero staging: a browser frame and a phone, so the screenshots read as a
+   product rather than as pasted images.
+   --------------------------------------------------------------------------- */
+
+.stage {
+  position: relative;
+  padding-bottom: 40px;
+}
+
+/* --- browser chrome --- */
+
+.browser {
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  overflow: hidden;
+  background: var(--surface);
+  box-shadow:
+    0 1px 1px rgba(20, 20, 18, 0.04),
+    0 10px 20px rgba(20, 20, 18, 0.07),
+    0 28px 56px rgba(20, 20, 18, 0.10);
+}
+
+[data-theme="dark"] .browser {
+  box-shadow:
+    0 1px 1px rgba(0, 0, 0, 0.32),
+    0 10px 20px rgba(0, 0, 0, 0.36),
+    0 28px 56px rgba(0, 0, 0, 0.46);
+}
+
+.browser-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 12px;
+  background: var(--subtle);
+  border-bottom: 1px solid var(--border);
+}
+
+.dot { width: 9px; height: 9px; border-radius: 50%; background: var(--border-strong); flex: none; }
+
+.browser-url {
+  flex: 1;
+  margin-left: 6px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 3px 9px;
+  font-size: 11px;
+  color: var(--muted);
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.browser-body { position: relative; aspect-ratio: 1280 / 760; background: var(--bg); }
+
+.browser-body img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top center;
+  opacity: 0;
+  transition: opacity 260ms ease;
+}
+
+.browser-body img.on { opacity: 1; }
+
+/* --- phone --- */
+
+.phone {
+  position: absolute;
+  right: -14px;
+  bottom: 0;
+  width: 27%;
+  max-width: 172px;
+  border: 5px solid #1b1c1a;
+  border-radius: 22px;
+  overflow: hidden;
+  background: #1b1c1a;
+  box-shadow: 0 16px 34px rgba(20, 20, 18, 0.20);
+}
+
+[data-theme="dark"] .phone {
+  border-color: #3a3d40;
+  box-shadow: 0 16px 34px rgba(0, 0, 0, 0.55);
+}
+
+.phone img { display: block; width: 100%; height: auto; }
+
+/* --- the role switch --- */
+
+.switch {
+  display: inline-flex;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--surface);
+  margin-bottom: 14px;
+}
+
+.switch button {
+  background: var(--surface);
+  color: var(--muted);
+  border: none;
+  border-radius: 0;
+  padding: 6px 13px;
+  font-size: 13px;
+}
+
+.switch button + button { border-left: 1px solid var(--border); }
+.switch button:hover { background: var(--hover); color: var(--text); }
+.switch button.on { background: var(--ink); color: var(--on-ink); }
+
+.switch-note {
+  font-size: 13px;
+  color: var(--muted);
+  margin: 0 0 16px;
+  min-height: 20px;
+}
+
+/* --- parallax --- */
+
+/* Drift is set from script and kept small; it should register as depth rather
+   than as movement. Disabled entirely for reduced-motion. */
+.drift { will-change: transform; }
+
+@media (prefers-reduced-motion: reduce) {
+  .drift { transform: none !important; }
+  .browser-body img { transition: none; }
+}
+
+@media (max-width: 900px) {
+  .phone { width: 30%; right: 0; }
+}
+
+@media (max-width: 560px) {
+  .phone { display: none; }
+  .stage { padding-bottom: 0; }
 }

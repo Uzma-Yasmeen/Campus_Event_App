@@ -53,10 +53,31 @@
         <p class="lp-note">Free to use. No card, no setup.</p>
       </div>
 
-      <div class="lp-shot reveal">
-        <img src="assets/preview.png"
-             alt="The event list, showing upcoming events with their QR codes"
-             loading="lazy" />
+      <div class="stage reveal">
+        <div class="switch" role="group" aria-label="Preview which role sees">
+          <button type="button" class="on" data-role="organizer">Organiser</button>
+          <button type="button" data-role="participant">Participant</button>
+        </div>
+        <p class="switch-note" id="switch-note" aria-live="polite">
+          An organiser can edit and remove the events they created.
+        </p>
+
+        <div class="browser drift" id="drift-browser">
+          <div class="browser-bar">
+            <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+            <span class="browser-url">campus-events/events</span>
+          </div>
+          <div class="browser-body">
+            <img id="shot-organizer" class="on" src="assets/preview.png"
+                 alt="The event list as an organiser sees it, with edit and delete controls" />
+            <img id="shot-participant" src="assets/preview-participant.png"
+                 alt="The same list as a participant sees it, without those controls" />
+          </div>
+        </div>
+
+        <div class="phone drift" id="drift-phone" aria-hidden="true">
+          <img src="assets/preview-mobile.png" alt="" loading="lazy" />
+        </div>
       </div>
     </div>
   </section>
@@ -232,6 +253,56 @@
     const paint = () => { toggle.innerHTML = Theme.get() === 'dark' ? ICON_SUN : ICON_MOON; };
     paint();
     toggle.addEventListener('click', () => { Theme.toggle(); paint(); });
+  })();
+
+  // Hero role switch: the same list, seen by each role. The screenshots are
+  // real captures, so the difference on show is the actual difference.
+  (function () {
+    const shots = {
+      organizer: document.getElementById('shot-organizer'),
+      participant: document.getElementById('shot-participant')
+    };
+    const notes = {
+      organizer: 'An organiser can edit and remove the events they created.',
+      participant: 'A participant sees the same events, without those controls.'
+    };
+    const note = document.getElementById('switch-note');
+
+    document.querySelectorAll('.switch button').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const role = btn.dataset.role;
+        document.querySelectorAll('.switch button').forEach((b) => b.classList.toggle('on', b === btn));
+        Object.entries(shots).forEach(([k, img]) => img.classList.toggle('on', k === role));
+        note.textContent = notes[role];
+      });
+    });
+  })();
+
+  // Parallax: the browser and the phone drift at slightly different rates as
+  // the hero leaves the viewport. Small on purpose - depth, not movement.
+  (function () {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+    const browser = document.getElementById('drift-browser');
+    const phone = document.getElementById('drift-phone');
+    const hero = document.querySelector('.lp-hero');
+    if (!browser || !hero) return;
+
+    let ticking = false;
+    const apply = () => {
+      const progress = Math.min(1, Math.max(0, -hero.getBoundingClientRect().top / window.innerHeight));
+      browser.style.transform = `translate3d(0, ${(-progress * 16).toFixed(1)}px, 0)`;
+      if (phone) phone.style.transform = `translate3d(0, ${(-progress * 30).toFixed(1)}px, 0)`;
+      ticking = false;
+    };
+
+    window.addEventListener('scroll', () => {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(apply);
+    }, { passive: true });
+
+    apply();
   })();
 
   // Reveal content as it scrolls into view, staggered a little within a group.
