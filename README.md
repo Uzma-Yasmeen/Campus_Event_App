@@ -20,6 +20,7 @@ mobile app.
 - **Events** — create, edit, delete, with categories, cover images and search
 - **Registrations** — organisers see the full participant list for their own events
 - **QR codes** — generated from a registration link, or upload one you already have
+- **Search and category filters**, on web and mobile alike
 - **Light and dark themes**, on web
 
 ## Running it
@@ -91,7 +92,12 @@ sign-in, role and ownership rules, campus scoping, event CRUD, QR generation and
 and search. The mobile app runs and has been driven through sign-in, browsing, event
 detail and registration on the web target, but not yet on physical hardware.
 
-Not built yet: pagination, email notifications, and a mobile dark theme.
+The one gap between the clients is the theme: the web client has a light/dark toggle and
+the mobile app is light only. Search and category filtering now work the same on both.
+
+Not built yet: pagination and any kind of notification. A notification preference used to
+be stored on the account and was removed — nothing ever read it, and a switch that does
+nothing is worse than no switch.
 
 ## Licence
 
