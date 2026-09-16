@@ -65,6 +65,29 @@ describe('campus scoping', () => {
     expect(seenByB.body).toHaveLength(0);
   });
 
+  it('lets the owner fetch their own event by id', async () => {
+    const owner = await makeUser({ role: 'organizer' });
+    const created = await makeEvent(owner.token, { title: 'Fetch Me' });
+
+    const res = await request(app).get(`/api/events/${created._id}`).set(auth(owner.token));
+
+    // Regression: this route populates the institution, so the scope check has
+    // to compare ids rather than stringify a populated object. It previously
+    // returned 404 to everyone, including the owner.
+    expect(res.status).toBe(200);
+    expect(res.body.title).toBe('Fetch Me');
+  });
+
+  it('lets anyone on the same campus fetch the event', async () => {
+    const owner = await makeUser({ role: 'organizer' });
+    const created = await makeEvent(owner.token);
+    const classmate = await makeUser({ role: 'student', institution: owner.institution });
+
+    const res = await request(app).get(`/api/events/${created._id}`).set(auth(classmate.token));
+
+    expect(res.status).toBe(200);
+  });
+
   it('answers 404 rather than 403 for another campus, so nothing is disclosed', async () => {
     const a = await makeUser({ role: 'organizer' });
     const event = await makeEvent(a.token);
